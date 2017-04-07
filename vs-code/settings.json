@@ -1,0 +1,44 @@
+// Place your settings in this file to overwrite the default settings
+{
+    "http.proxy": "http://maninvestmentsCorbit-proxy:Rb3a58MQif7ehds8p9e5@wkg-se-wp.maninvestments.com:8080",
+    //"https.proxy": "http://maninvestmentsCorbit-proxy:Rb3a58MQif7ehds8p9e5@wkg-se-wp.maninvestments.com:8080",
+    "http.proxyStrictSSL": false,
+    "window.zoomLevel": -1,
+    "workbench.iconTheme": "vscode-icons",
+    "editor.fontFamily": "Consolas, 'Courier New', monospace",
+
+    // #Vim
+    "vim.leader": ",",
+    "vim.showcmd": true,
+    "vim.ignorecase": true,
+    "vim.easymotion": true,
+    "vim.incsearch": true,
+    "vim.useSystemClipboard": true,
+    "vim.useCtrlKeys": true,
+    "vim.hlsearch": true,
+    "vim.handleKeys":{
+        "<C-a>": false,
+        "<C-c>": false,
+        "<C-f>": false,
+        "<Up>": false
+    },
+    "vim.insertModeKeyBindings": [
+        { "before": [ "<Up>" ], "after": [ "d", "d", "p" ] },
+        { "before": [ "<Down>" ], "after": [ "d", "d", "k", "P" ] },
+        { "before": [ "<Left>" ], "after": [ "g", "t" ] },
+        { "before": [ "<Right>" ], "after": [ "g", "T" ] },
+        { "before": [ "<Right>" ], "after": [ "g", "T" ] }
+    ],
+    "vim.otherModesKeyBindings": [
+        { "before": [ "<Up>" ], "after": [ "d", "d", "p" ] },
+        { "before": [ "<Down>" ], "after": [ "d", "d", "k", "P" ] },
+        { "before": [ "<Left>" ], "after": [ "g", "t" ] },
+        { "before": [ "<Right>" ], "after": [ "g", "T" ] },
+        { "before": [ "<Right>" ], "after": [ "g", "T" ] }
+    ],
+    "vim.otherModesKeyBindingsNonRecursive": [
+        { "before": [ "<leader>", "t" ], "after": [], "command": [ { "command": "workbench.action.terminal.toggleTerminal", "args": "" } ] }
+    ],
+
+    "terminal.integrated.shell.windows": "C:\\WINDOWS\\Sysnative\\WindowsPowerShell\\v1.0\\powershell.exe"
+}
