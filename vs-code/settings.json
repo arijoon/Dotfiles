@@ -1,11 +1,14 @@
 // Place your settings in this file to overwrite the default settings
 {
-    "http.proxy": "http://maninvestmentsCorbit-proxy:Rb3a58MQif7ehds8p9e5@wkg-se-wp.maninvestments.com:8080",
-    //"https.proxy": "http://maninvestmentsCorbit-proxy:Rb3a58MQif7ehds8p9e5@wkg-se-wp.maninvestments.com:8080",
-    "http.proxyStrictSSL": false,
-    "window.zoomLevel": -1,
+    "window.zoomLevel": 0,
     "workbench.iconTheme": "vscode-icons",
     "editor.fontFamily": "Consolas, 'Courier New', monospace",
+
+    "git.enabled": true,
+
+    "terminal.integrated.shell.windows": "C:\\cygwin\\bin\\zsh.exe",
+    "code-runner.saveFileBeforeRun": true,
+    "code-runner.runInTerminal": true,
 
     // #Vim
     "vim.leader": ",",
@@ -13,32 +16,41 @@
     "vim.ignorecase": true,
     "vim.easymotion": true,
     "vim.incsearch": true,
-    "vim.useSystemClipboard": true,
+    // "vim.useSystemClipboard": true,
     "vim.useCtrlKeys": true,
     "vim.hlsearch": true,
     "vim.handleKeys":{
         "<C-a>": false,
         "<C-c>": false,
-        "<C-f>": false,
-        "<Up>": false
+        "<C-f>": false
     },
     "vim.insertModeKeyBindings": [
-        { "before": [ "<Up>" ], "after": [ "d", "d", "p" ] },
-        { "before": [ "<Down>" ], "after": [ "d", "d", "k", "P" ] },
-        { "before": [ "<Left>" ], "after": [ "g", "t" ] },
-        { "before": [ "<Right>" ], "after": [ "g", "T" ] },
-        { "before": [ "<Right>" ], "after": [ "g", "T" ] }
+        { "before": [ "<down>" ], "after": [ "d", "d", "p" ] },
+        { "before": [ "<up>" ], "after": [ "d", "d", "k", "P" ] },
+        { "before": [ "<right>" ], "after": [ "g", "t" ] },
+        { "before": [ "<left>" ], "after": [ "g", "T" ] },
+        { "before": [ "j", "j" ], "after": [ "<esc>" ] }
     ],
     "vim.otherModesKeyBindings": [
-        { "before": [ "<Up>" ], "after": [ "d", "d", "p" ] },
-        { "before": [ "<Down>" ], "after": [ "d", "d", "k", "P" ] },
-        { "before": [ "<Left>" ], "after": [ "g", "t" ] },
-        { "before": [ "<Right>" ], "after": [ "g", "T" ] },
-        { "before": [ "<Right>" ], "after": [ "g", "T" ] }
+        { "before": [ "<down>" ], "after": [ "d", "d", "p" ] },
+        { "before": [ "<up>" ], "after": [ "d", "d", "k", "P" ] },
+        { "before": [ "<right>" ], "after": [ "g", "t" ] },
+        { "before": [ "<left>" ], "after": [ "g", "T" ] }
     ],
     "vim.otherModesKeyBindingsNonRecursive": [
-        { "before": [ "<leader>", "t" ], "after": [], "command": [ { "command": "workbench.action.terminal.toggleTerminal", "args": "" } ] }
+        { "before": [ "<leader>", "t" ], "after": [], "commands": [ { "command": "workbench.action.terminal.toggleTerminal", "args": [] } ] },
+        { "before": [ "<leader>", "f" ], "after": [], "commands": [ { "command": "workbench.action.quickOpen", "args": [] } ] },
+        { "before": [ "<leader>", "d" ], "after": [], "commands": [ { "command": "editor.action.goToDeclaration", "args": [] } ] },
+        { "before": [ "<leader>", "i" ], "after": [], "commands": [ { "command": "editor.action.goToImplementation", "args": [] } ] },
+        { "before": [ "<leader>", "r", "t" ], "after": [], "commands": [ { "command": "workbench.action.tasks.runTask", "args": [] } ] },
+        { "before": [ "<leader>", "r", "c" ], "after": [], "commands": [ { "command": "code-runner.run", "args": [] } ] },
+        { "before": [ "<leader>", "c", "i" ], "after": [], "commands": [ { "command": "editor.action.commentLine", "args": [] } ] }
     ],
 
-    "terminal.integrated.shell.windows": "C:\\WINDOWS\\Sysnative\\WindowsPowerShell\\v1.0\\powershell.exe"
+    // Ts
+    "tslint.enable": true,
+
+    // Py
+    "python.linting.enabled": true,
+    "python.linting.pylintArgs": ["--errors-only"]
 }
