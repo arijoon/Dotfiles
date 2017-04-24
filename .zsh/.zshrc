@@ -1,13 +1,14 @@
 # Path to your oh-my-zsh configuration.
 #ZSH=~/.oh-my-zsh
-export ZSH=/home/vagrant/.oh-my-zsh
+export ZSH=~/.oh-my-zsh
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-#ZSH_THEME="clean"
-ZSH_THEME="robbyrussell"
+ZSH_THEME="clean"
+#ZSH_THEME="robbyrussell"
+#ZSH_THEME="agnoster"
 
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
@@ -47,19 +48,13 @@ ZSH_THEME="robbyrussell"
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(rails ruby git)
+plugins=(git)
 
 source $ZSH/oh-my-zsh.sh
-[[ -s "$HOME/.gvm/scripts/gvm" ]] && source "$HOME/.gvm/scripts/gvm"
-
-# Configure Go
-gvm use go1.6.2
-export GOROOT_BOOTSTRAP=$GOROOT
-
+#
 # User configuration
 #export GOPATH=$HOME/dev/go
 # export GOBIN=$HOME/dev/go/bin
-export PATH="$PATH:/usr/local/heroku/bin:/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/novell/iprint/bin:/home/arman/.rvm/bin:/home/arman/.cabal/bin"
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # Preferred editor for local and remote sessions
@@ -75,7 +70,7 @@ fi
 # ssh
 # export SSH_KEY_PATH="~/.ssh/dsa_id"
 
-PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+PATH=$PATH # Add RVM to PATH for scripting
 # ###################################################################
 # Git aliases
 # ###################################################################
@@ -83,8 +78,6 @@ PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
 alias ga='git add .'
 alias gp='git push'
 alias gpu='git pull'
-alias gl='git log'
-alias gs='git status'
 alias gd='git diff'
 alias gm='git commit'
 alias gma='git commit -am'
@@ -93,5 +86,13 @@ alias gc='git checkout'
 alias gra='git remote add'
 alias gr='git remote'
 alias gcl='git clone'
+alias gs='git status -s -b '
+alias ga='git add '
+alias gaa='git add  .'
+alias gl=g'it log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit '
+alias gl-f'=gl --follow -p -- '
+alias gls='git log --graph --pretty=format:"%Cred%h%Creset - %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit '
+alias ggb='git gui blame '
+alias ggf='gitk --follow --all -p '
 
 alias vim='TERM=xterm-256color vim'
