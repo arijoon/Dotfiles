@@ -9,12 +9,11 @@ function get_git_branch()
             --return m
         --end
     --end
-    local out = assert(io.popen("git symbolic-ref --short HEAD", "r"))
+    local out = assert(io.popen("git symbolic-ref --short HEAD 2>nul", "r"))
 
-    if out then
-      local branch = out:read('*all')
+    local branch = out:read('*all')
 
-      out:close()
+    if out:close() then
       return string.gsub(branch, "\n", "")
     end
 
