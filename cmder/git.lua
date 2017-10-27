@@ -3,11 +3,19 @@
  -- @return {false|git branch name}
 ---
 function get_git_branch()
-    for line in io.popen("git branch 2>nul"):lines() do
-        local m = line:match("%* (.+)$")
-        if m then
-            return m
-        end
+    --for line in io.popen("git branch 2>nul"):lines() do
+        --local m = line:match("%* (.+)$")
+        --if m then
+            --return m
+        --end
+    --end
+    local out = assert(io.popen("git symbolic-ref --short HEAD", "r"))
+
+    if out then
+      local branch = out:read('*all')
+
+      out:close()
+      return string.gsub(branch, "\n", "")
     end
 
     return false
@@ -36,15 +44,15 @@ function git_prompt_filter()
     local branch = get_git_branch()
     if branch then
         -- Has branch => therefore it is a git folder, now figure out status
-        if get_git_status() then
+        if true then
 			-- clean
             color = colors.clean
-      clink.prompt.value = string.gsub(clink.prompt.value, "{git}", color.."  "..branch.." \x1b[32;40m")
+            clink.prompt.value = string.gsub(clink.prompt.value, "{git}", color.."  "..branch.." \x1b[32;40m")
 			--clink.prompt.value = string.gsub(clink.prompt.value, "{git}", color.."  "..branch.." \x1b[33;40m")
         else
 			-- dirty
             color = colors.dirty
-			clink.prompt.value = string.gsub(clink.prompt.value, "{git}", color.."  "..branch.." \x1b[33;40m")
+            clink.prompt.value = string.gsub(clink.prompt.value, "{git}", color.."  "..branch.." \x1b[33;40m")
         end
         
         return true
