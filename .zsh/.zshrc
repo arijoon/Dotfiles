@@ -6,9 +6,9 @@ export ZSH=~/.oh-my-zsh
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-ZSH_THEME="clean"
+#ZSH_THEME="clean"
 #ZSH_THEME="robbyrussell"
-#ZSH_THEME="agnoster"
+ZSH_THEME="agnoster"
 
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
@@ -94,5 +94,3 @@ alias gl-f'=gl --follow -p -- '
 alias gls='git log --graph --pretty=format:"%Cred%h%Creset - %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit '
 alias ggb='git gui blame '
 alias ggf='gitk --follow --all -p '
-
-alias vim='TERM=xterm-256color vim'
