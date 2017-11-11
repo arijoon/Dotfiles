@@ -2,11 +2,11 @@
 	autocrlf = true
 	preloadindex = true
 	fscache = true
-	excludesfile = \\\\mipsqw2k1\\ayaraee$\\gitignore_global.txt
+	excludesfile = ~/.gitignore_global.txt
 	ignorecase = true
 [user]
 	name = Arman Yaraee
-	email = arman.yaraee@man.com
+	email = arman@yaraee.net
 [gc]
 	auto = 256
 [code]

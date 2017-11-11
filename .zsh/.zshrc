@@ -1,6 +1,7 @@
 # Path to your oh-my-zsh configuration.
 #ZSH=~/.oh-my-zsh
 export ZSH=~/.oh-my-zsh
+export TERM="xterm-256color"
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
@@ -8,7 +9,7 @@ export ZSH=~/.oh-my-zsh
 # time that oh-my-zsh is loaded.
 #ZSH_THEME="clean"
 #ZSH_THEME="robbyrussell"
-ZSH_THEME="agnoster1"
+ZSH_THEME="powerlevel9k/powerlevel9k"
 
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
@@ -94,3 +95,19 @@ alias gl-f'=gl --follow -p -- '
 alias gls='git log --graph --pretty=format:"%Cred%h%Creset - %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit '
 alias ggb='git gui blame '
 alias ggf='gitk --follow --all -p '
+
+
+# added by travis gem
+[ -f C:/Users/Arman/.travis/travis.sh ] && source C:/Users/Arman/.travis/travis.sh
+
+POWERLEVEL9K_MODE='nerdfont-complete'
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir vcs)
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status rbenv command_execution_time time)
+POWERLEVEL9K_STATUS_VERBOSE=false
+POWERLEVEL9K_SHORTEN_STRATEGY="truncate_middle"
+POWERLEVEL9K_SHORTEN_DIR_LENGTH=3
+POWERLEVEL9K_PROMPT_ON_NEWLINE=true
+
+# Symbols
+POWERLEVEL9K_FOLDER_ICON=$'\uE5FE'
+
