@@ -27,6 +27,13 @@
 	tags = tag --sort=-creatordate
 	aliases = config --get-regexp alias
 	co = checkout
+	coi = !git branch | grep  "$1" -m 1 | xargs git checkout
 	br = branch
 	ci = commit
+  gl= log --graph --pretty=format:\"%C(dim red)%h%Creset - %C(bold yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset\" --abbrev-commit 
 	gls = log --pretty=oneline --abbrev-commit
+  gfp= push --force-with-lease  
+	fe = !git fetch origin $1:$1
+	fem = fetch origin master:master
+  gs = status -s -b 
+
