@@ -11,6 +11,11 @@ export TERM="xterm-256color"
 #ZSH_THEME="robbyrussell"
 ZSH_THEME="powerlevel9k/powerlevel9k"
 
+# Enable Vi mode
+bindkey -v
+bindkey -M vicmd v edit-command-line
+export KEYTIMEOUT=1
+
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
@@ -49,7 +54,7 @@ ZSH_THEME="powerlevel9k/powerlevel9k"
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git)
+plugins=(git, vi-mode)
 
 source $ZSH/oh-my-zsh.sh
 #
@@ -102,11 +107,15 @@ alias ggf='gitk --follow --all -p '
 
 POWERLEVEL9K_MODE='nerdfont-complete'
 POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir vcs)
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status rbenv command_execution_time time)
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status rbenv command_execution_time vi_mode time)
 POWERLEVEL9K_STATUS_VERBOSE=false
 POWERLEVEL9K_SHORTEN_STRATEGY="truncate_middle"
 POWERLEVEL9K_SHORTEN_DIR_LENGTH=3
 POWERLEVEL9K_PROMPT_ON_NEWLINE=true
+
+# Colours
+POWERLEVEL9K_VI_MODE_INSERT_BACKGROUND='yellow'
+POWERLEVEL9K_VI_MODE_NORMAL_BACKGROUND='black'
 
 # Symbols
 POWERLEVEL9K_FOLDER_ICON=$'\uE5FE'
