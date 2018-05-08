@@ -11,10 +11,6 @@ export TERM="xterm-256color"
 #ZSH_THEME="robbyrussell"
 ZSH_THEME="powerlevel9k/powerlevel9k"
 
-# Enable Vi mode
-bindkey -v
-bindkey -M vicmd v edit-command-line
-export KEYTIMEOUT=1
 
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
@@ -69,6 +65,11 @@ if [[ -n $SSH_CONNECTION ]]; then
 else
   export EDITOR='mvim'
 fi
+
+# Enable Vi mode
+bindkey -v
+bindkey -M vicmd v edit-command-line
+export KEYTIMEOUT=1
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
