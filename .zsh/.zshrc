@@ -50,7 +50,7 @@ ZSH_THEME="powerlevel9k/powerlevel9k"
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git, vi-mode)
+plugins=(git, vi-mode, docker)
 
 source $ZSH/oh-my-zsh.sh
 #
@@ -103,6 +103,7 @@ alias gl-f'=gl --follow -p -- '
 alias gls='git log --graph --pretty=format:"%Cred%h%Creset - %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit '
 alias ggb='git gui blame '
 alias ggf='gitk --follow --all -p '
+alias dc='docker'
 
 
 # added by travis gem
