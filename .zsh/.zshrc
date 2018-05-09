@@ -69,6 +69,8 @@ fi
 # Enable Vi mode
 bindkey -v
 bindkey -M vicmd v edit-command-line
+bindkey '^R' history-beginning-search-backward
+bindkey '^W' history-beginning-search-forward
 export KEYTIMEOUT=1
 
 # Compilation flags
