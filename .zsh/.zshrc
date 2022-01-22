@@ -50,7 +50,7 @@ ZSH_THEME="powerlevel9k/powerlevel9k"
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git, vi-mode, docker)
+plugins=(git github gitignore kubectl docker)
 
 source $ZSH/oh-my-zsh.sh
 #
@@ -105,10 +105,6 @@ alias ggb='git gui blame '
 alias ggf='gitk --follow --all -p '
 alias dc='docker'
 
-
-# added by travis gem
-[ -f C:/Users/Arman/.travis/travis.sh ] && source C:/Users/Arman/.travis/travis.sh
-
 POWERLEVEL9K_MODE='nerdfont-complete'
 POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir vcs)
 POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status rbenv command_execution_time vi_mode time)
@@ -123,4 +119,10 @@ POWERLEVEL9K_VI_MODE_NORMAL_BACKGROUND='black'
 
 # Symbols
 POWERLEVEL9K_FOLDER_ICON=$'\uE5FE'
+
+if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then . ~/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
+if direnv --version &> /dev/null
+then
+  eval "$(direnv hook zsh)"
+fi
 
