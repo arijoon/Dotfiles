@@ -28,22 +28,33 @@
 
 # Enable autocomplete layer
 [[layers]]
-name = 'autocomplete'
-auto_completion_return_key_behavior = "complete"
-auto_completion_tab_key_behavior = "smart"
+  name = 'autocomplete'
+  auto_completion_return_key_behavior = "complete"
+  auto_completion_tab_key_behavior = "smart"
+[[layers]]
+  name = 'shell'
+  default_position = 'bottom'
+  default_height = 30
+  default_shell = 'terminal'
 
 [[layers]]
-name = 'shell'
-default_position = 'bottom'
-default_height = 30
-default_shell = 'terminal'
-
+  name = 'format'
 [[layers]]
-name = 'lang#elixir'
-
+  name = 'incsearch'
+# [[layers]]
+#   name = "denite"
 [[layers]]
-name = 'format'
-
+    name = 'git'
 [[layers]]
-name = 'incsearch'
+    name = 'VersionControl'
+
+# Language supports
+[[layers]]
+  name = 'lang#elixir'
+[[layers]]
+  name = "lang#nix"
+[[layers]]
+  name = "tmux"
+
+
 
