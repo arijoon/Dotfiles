@@ -2,14 +2,14 @@
 #ZSH=~/.oh-my-zsh
 export ZSH=~/.oh-my-zsh
 export TERM="xterm-256color"
-
+DIR=~/.dotfiles/.zsh
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
 #ZSH_THEME="clean"
 #ZSH_THEME="robbyrussell"
-ZSH_THEME="powerlevel9k/powerlevel9k"
+ZSH_THEME="powerlevel10k/powerlevel10k"
 
 
 # Example aliases
@@ -126,3 +126,5 @@ then
   eval "$(direnv hook zsh)"
 fi
 
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f $DIR/p10k.zsh ]] || source $DIR/p10k.zsh

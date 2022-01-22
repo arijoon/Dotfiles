@@ -8,6 +8,7 @@ ln -s ~/.dotfiles/.zsh/.zshrc ~/.zshrc
 ln -s ~/.dotfiles/.tmux.conf ~/.tmux.conf
 ln -s ~/.dotfiles/.zsh/agnoster1.zsh-theme ~/.oh-my-zsh/themes/agnoster1.zsh-theme 
 ln -s ~/.dotfiles/.zsh/powerlevel9k ~/.oh-my-zsh/custom/themes/powerlevel9k
+ln -s ~/.dotfiles/.zsh/powerlevel10k ~/.oh-my-zsh/custom/themes/powerlevel10k
 
 # Install tmux plugin manager
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
