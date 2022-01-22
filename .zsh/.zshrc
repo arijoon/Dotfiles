@@ -35,12 +35,12 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # DISABLE_CORRECTION="true"
 
 # Uncomment following line if you want red dots to be displayed while waiting for completion
-# COMPLETION_WAITING_DOTS="true"
+COMPLETION_WAITING_DOTS="true"
 
 # Uncomment following line if you want to disable marking untracked files under
 # VCS as dirty. This makes repository status check for large repositories much,
 # much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
+DISABLE_UNTRACKED_FILES_DIRTY="true"
 
 # Uncomment following line if you want to the command execution time stamp shown 
 # in the history command output.
@@ -53,11 +53,6 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 plugins=(git github gitignore kubectl docker)
 
 source $ZSH/oh-my-zsh.sh
-#
-# User configuration
-#export GOPATH=$HOME/dev/go
-# export GOBIN=$HOME/dev/go/bin
-# export MANPATH="/usr/local/man:$MANPATH"
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
@@ -73,13 +68,9 @@ bindkey '^R' history-beginning-search-backward
 bindkey '^W' history-beginning-search-forward
 export KEYTIMEOUT=1
 
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
 # ssh
 # export SSH_KEY_PATH="~/.ssh/dsa_id"
 
-PATH=$PATH # Add RVM to PATH for scripting
 # ###################################################################
 # Git aliases
 # ###################################################################
@@ -103,23 +94,19 @@ alias gl-f'=gl --follow -p -- '
 alias gls='git log --graph --pretty=format:"%Cred%h%Creset - %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit '
 alias ggb='git gui blame '
 alias ggf='gitk --follow --all -p '
+
+
+# ###################################################################
+# Common aliases
+# ###################################################################
 alias dc='docker'
+alias kc='kubectl'
+alias aptc='apt-cache'
+alias apts='apt-cache search'
 
-POWERLEVEL9K_MODE='nerdfont-complete'
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir vcs)
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status rbenv command_execution_time vi_mode time)
-POWERLEVEL9K_STATUS_VERBOSE=false
-POWERLEVEL9K_SHORTEN_STRATEGY="truncate_middle"
-POWERLEVEL9K_SHORTEN_DIR_LENGTH=3
-POWERLEVEL9K_PROMPT_ON_NEWLINE=true
-
-# Colours
-POWERLEVEL9K_VI_MODE_INSERT_BACKGROUND='yellow'
-POWERLEVEL9K_VI_MODE_NORMAL_BACKGROUND='black'
-
-# Symbols
-POWERLEVEL9K_FOLDER_ICON=$'\uE5FE'
-
+# ###################################################################
+# Nix setup and hooks
+# ###################################################################
 if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then . ~/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
 if direnv --version &> /dev/null
 then
@@ -128,3 +115,8 @@ fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f $DIR/p10k.zsh ]] || source $DIR/p10k.zsh
+
+# ###################################################################
+# Load system local configuration
+# ###################################################################
+[[ ! -f ~/.zshrc_local.zsh ]] || source ~/.zshrc_local.zsh

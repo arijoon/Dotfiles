@@ -1,4 +1,4 @@
-sudo apt-get install zsh git tmux -y
+sudo apt-get install zsh git vim-gtk3 tmux -y
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 git clone --recursive https://github.com/arijoon/Dotfiles.git ~/.dotfiles
 rm ~/.zshrc
