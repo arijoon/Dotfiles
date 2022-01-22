@@ -1,0 +1,10 @@
+source ~/.vimrc
+
+" Map idea mappings
+:map <Leader>f :action SearchEverywhere<CR>
+:map <Leader>gf :action GotoFile<CR>
+:map <Leader>d :action GotoDeclaration<CR>
+
+" Enable extensions
+set surround
+set multiple-cursors

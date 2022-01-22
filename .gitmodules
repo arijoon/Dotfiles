@@ -1,6 +1,3 @@
-[submodule ".vim"]
-	path = .vim
-	url = https://github.com/arijoon/.vim.git
 [submodule ".zsh/powerlevel9k"]
 	path = .zsh/powerlevel9k
 	url = https://github.com/bhilburn/powerlevel9k.git
