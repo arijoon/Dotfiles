@@ -9,7 +9,7 @@
     # set spacevim theme. by default colorscheme layer is not loaded,
     # if you want to use more colorscheme, please load the colorscheme
     # layer
-    colorscheme = "gruvbox"
+    colorscheme = "space-vim-dark"
     colorscheme_bg = "dark"
     # Disable guicolors in basic mode, many terminal do not support 24bit
     # true colors
@@ -25,6 +25,10 @@
     filemanager = "nerdtree"
     filetree_direction = "left"
     default_indent = 2
+# Disable unwanted layers
+[[layers]]
+  name = 'core#statusline'
+  enable = false
 
 # Enable autocomplete layer
 [[layers]]
@@ -37,6 +41,8 @@
   default_height = 30
   default_shell = 'terminal'
 
+[[layers]]
+  name = 'colorscheme'
 [[layers]]
   name = 'format'
 [[layers]]
@@ -56,5 +62,17 @@
 [[layers]]
   name = "tmux"
 
-
+# Custom Plugins
+[[custom_plugins]]
+repo = "https://github.com/liuchengxu/space-vim-dark.git"
+merged = 0
+[[custom_plugins]]
+repo = "https://github.com/vim-airline/vim-airline.git"
+merged = 0
+[[custom_plugins]]
+repo = "https://github.com/vim-airline/vim-airline-themes.git"
+merged = 0
+[[custom_plugins]]
+repo = "https://github.com/frazrepo/vim-rainbow.git"
+merged = 0
 
