@@ -30,8 +30,10 @@ function! myspacevim#after() abort
   set foldmethod=indent
   set foldlevel=99
 
-  nnoremap <Leader>p "0p
   inoremap jj <ESC>
 
+  " find command mappings
+  nnoremap <Leader>ff :Files<Cr>
+  nnoremap <Leader>fi :Rg<Cr>
 
 endfunction
