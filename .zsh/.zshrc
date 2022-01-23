@@ -112,6 +112,13 @@ alias aptc='apt-cache'
 alias apts='apt-cache search'
 
 # ###################################################################
+# Utility functions
+# ###################################################################
+function paint_colourmap() {
+  for i in {0..255}; do print -Pn "%K{$i}  %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%6)):#3}:+$'\n'}; done
+}
+
+# ###################################################################
 # Nix setup and hooks
 # ###################################################################
 if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then . ~/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
