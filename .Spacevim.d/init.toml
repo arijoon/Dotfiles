@@ -25,7 +25,8 @@
   filemanager = "nerdtree"
   filetree_direction = "left"
   default_indent = 2
-  bootstrap_after = 'myspacevim#before'
+  bootstrap_before = 'myspacevim#before'
+  bootstrap_after = 'myspacevim#after'
 
 # Disable unwanted layers
 [[layers]]

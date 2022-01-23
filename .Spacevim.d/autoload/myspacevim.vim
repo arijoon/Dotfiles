@@ -3,6 +3,14 @@ function! myspacevim#before() abort
   " SimpylFold
   let g:SimpylFold_docstring_preview = 1 
 
+  " " Symbols config
+  let g:airline_powerline_fonts=1
+  let g:airline_theme='deus'
+
+endfunction
+
+function! myspacevim#after() abort
+
   " Indent config
   set smartindent
   set tabstop=2
@@ -25,7 +33,5 @@ function! myspacevim#before() abort
   nnoremap <Leader>p "0p
   inoremap jj <ESC>
 
-  " Symbols config
-  let g:airline_powerline_fonts=1
 
 endfunction
