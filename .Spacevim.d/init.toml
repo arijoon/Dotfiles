@@ -25,13 +25,17 @@
   filemanager = "nerdtree"
   filetree_direction = "left"
   default_indent = 2
+  windows_leader=''
+  enable_language_specific_leader = false
+  windows_smartclose = ''
+  vimcompatible = true
   bootstrap_before = 'myspacevim#before'
   bootstrap_after = 'myspacevim#after'
 
 # Disable unwanted layers
 [[layers]]
   name = 'core#statusline'
-  enable = false
+  enable = true
 
 # Enable autocomplete layer
 [[layers]]
@@ -70,12 +74,12 @@
 repo = "https://github.com/liuchengxu/space-vim-dark.git"
 merged = 0
 [[custom_plugins]]
-repo = "https://github.com/vim-airline/vim-airline.git"
-merged = 0
-[[custom_plugins]]
-repo = "https://github.com/vim-airline/vim-airline-themes.git"
-merged = 0
-[[custom_plugins]]
 repo = "https://github.com/frazrepo/vim-rainbow.git"
+merged = 0
+[[custom_plugins]]
+repo = "https://github.com/junegunn/fzf.git"
+merged = 0
+[[custom_plugins]]
+repo = "https://github.com/junegunn/fzf.vim.git"
 merged = 0
 
