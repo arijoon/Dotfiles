@@ -82,4 +82,6 @@ merged = 0
 [[custom_plugins]]
 repo = "https://github.com/junegunn/fzf.vim.git"
 merged = 0
-
+[[custom_plugins]]
+repo = "liuchengxu/vim-clap"
+merged = 0
