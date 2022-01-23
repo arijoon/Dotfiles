@@ -56,7 +56,7 @@ plugins=(
   gitignore
   kubectl
   docker 
-  nix-zsh-completions
+  # nix-zsh-completions
 )
 
 source $ZSH/oh-my-zsh.sh
