@@ -8,7 +8,6 @@ function! myspacevim#before() abort
   " let g:airline_theme='angr'
 
 endfunction
-
 function! myspacevim#after() abort
 
   " Indent config
@@ -33,7 +32,8 @@ function! myspacevim#after() abort
   inoremap jj <ESC>
 
   " find command mappings
-  nnoremap <Leader>ff :Files<Cr>
-  nnoremap <Leader>fi :Rg<Cr>
+  nnoremap <Leader>ff :Files<CR>
+  nnoremap <Leader>fi :Rg<CR>
 
 endfunction
+
