@@ -11,7 +11,6 @@ DIR=~/.dotfiles/.zsh
 #ZSH_THEME="robbyrussell"
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
-
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
@@ -43,9 +42,9 @@ COMPLETION_WAITING_DOTS="true"
 DISABLE_UNTRACKED_FILES_DIRTY="true"
 
 # FZF command setup
-# export FZF_DEFAULT_COMMAND="fd --type f --hidden"
 # export FZF_CTRL_T_COMMAND="fd --type f --hidden"
-export FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :50 {}'"
+FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :50 {}'"
+FZF_ALT_C_OPTS="--preview 'tree -c {} | head -50'"
 
 # Uncomment following line if you want to the command execution time stamp shown 
 # in the history command output.
