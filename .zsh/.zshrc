@@ -47,6 +47,15 @@ DISABLE_UNTRACKED_FILES_DIRTY="true"
 # The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
 # HIST_STAMPS="mm/dd/yyyy"
 
+# ###################################################################
+# Nix setup and hooks
+# ###################################################################
+if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then . ~/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
+if direnv --version &> /dev/null
+then
+  eval "$(direnv hook zsh)"
+fi
+
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
@@ -56,6 +65,7 @@ plugins=(
   gitignore
   kubectl
   docker 
+  fzf
   # nix-zsh-completions
 )
 
@@ -118,17 +128,14 @@ function paint_colourmap() {
   for i in {0..255}; do print -Pn "%K{$i}  %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%6)):#3}:+$'\n'}; done
 }
 
-# ###################################################################
-# Nix setup and hooks
-# ###################################################################
-if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then . ~/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
-if direnv --version &> /dev/null
-then
-  eval "$(direnv hook zsh)"
-fi
-
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f $DIR/p10k.zsh ]] || source $DIR/p10k.zsh
+
+# Load FZF setup
+fzf-share &> /dev/null && {
+  source $(fzf-share)/completion.zsh
+  source $(fzf-share)/key-bindings.zsh
+}
 
 # ###################################################################
 # Load system local configuration
