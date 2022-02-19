@@ -42,6 +42,11 @@ COMPLETION_WAITING_DOTS="true"
 # much faster.
 DISABLE_UNTRACKED_FILES_DIRTY="true"
 
+# FZF command setup
+# export FZF_DEFAULT_COMMAND="fd --type f --hidden"
+# export FZF_CTRL_T_COMMAND="fd --type f --hidden"
+export FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :50 {}'"
+
 # Uncomment following line if you want to the command execution time stamp shown 
 # in the history command output.
 # The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
