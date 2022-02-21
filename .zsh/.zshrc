@@ -89,6 +89,9 @@ bindkey '^R' history-beginning-search-backward
 bindkey '^W' history-beginning-search-forward
 export KEYTIMEOUT=1
 
+# global aliases
+alias reloadzsh='source ~/.zshrc'
+
 # ssh
 # export SSH_KEY_PATH="~/.ssh/dsa_id"
 
@@ -115,6 +118,9 @@ alias gl-f'=gl --follow -p -- '
 alias gls='git log --graph --pretty=format:"%Cred%h%Creset - %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit '
 alias ggb='git gui blame '
 alias ggf='gitk --follow --all -p '
+# Fuzzy aliases
+alias gco='git checkout $(git branch | fzf)'
+alias gcor='git checkout $(git branch --remote | fzf)'
 
 
 # ###################################################################
