@@ -65,8 +65,6 @@
 [[layers]]
   name = 'lang#elixir'
 [[layers]]
-  name = "lang#nix"
-[[layers]]
   name = "tmux"
 
 # Custom Plugins
@@ -85,3 +83,7 @@ merged = 0
 [[custom_plugins]]
 repo = "liuchengxu/vim-clap"
 merged = 0
+[[custom_plugins]]
+repo = "LnL7/vim-nix"
+merged = 0
+
