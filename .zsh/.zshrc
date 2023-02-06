@@ -78,7 +78,7 @@ source $ZSH/oh-my-zsh.sh
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR='vim'
 else
-  export EDITOR='mvim'
+  export EDITOR='vim'
 fi
 
 # Enable Vi mode
@@ -144,6 +144,7 @@ function paint_colourmap() {
 fzf-share &> /dev/null && {
   source $(fzf-share)/completion.zsh
   source $(fzf-share)/key-bindings.zsh
+  source ~/.dotfiles/shell/fzf-completions.zsh
 }
 
 # ###################################################################
