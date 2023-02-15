@@ -50,15 +50,6 @@ FZF_ALT_C_OPTS="--preview 'tree -c {} | head -50'"
 # The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
 # HIST_STAMPS="mm/dd/yyyy"
 
-# ###################################################################
-# Nix setup and hooks
-# ###################################################################
-if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then . ~/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
-if direnv --version &> /dev/null
-then
-  eval "$(direnv hook zsh)"
-fi
-
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
@@ -78,7 +69,7 @@ source $ZSH/oh-my-zsh.sh
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR='vim'
 else
-  export EDITOR='mvim'
+  export EDITOR='vim'
 fi
 
 # Enable Vi mode
@@ -150,3 +141,11 @@ fzf-share &> /dev/null && {
 # Load system local configuration
 # ###################################################################
 [[ ! -f ~/.zshrc_local.zsh ]] || source ~/.zshrc_local.zsh
+
+if [ -e /home/arman/.nix-profile/etc/profile.d/nix.sh ] && [[ -z ${NIX_PROFILES} ]]; then . /home/arman/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
+
+if direnv --version &> /dev/null
+then
+  eval "$(direnv hook zsh)"
+fi
+
