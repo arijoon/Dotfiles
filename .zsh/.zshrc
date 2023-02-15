@@ -135,6 +135,7 @@ function paint_colourmap() {
 fzf-share &> /dev/null && {
   source $(fzf-share)/completion.zsh
   source $(fzf-share)/key-bindings.zsh
+  source ~/.dotfiles/shell/fzf-completions.zsh
 }
 
 # ###################################################################
