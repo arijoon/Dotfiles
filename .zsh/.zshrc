@@ -9,6 +9,7 @@ DIR=~/.dotfiles/.zsh
 #ZSH_THEME="clean"
 #ZSH_THEME="robbyrussell"
 ZSH_THEME="powerlevel10k/powerlevel10k"
+export TERM=alacritty
 
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
@@ -69,7 +70,7 @@ source $ZSH/oh-my-zsh.sh
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR='vim'
 else
-  export EDITOR='vim'
+  export EDITOR='nvim'
 fi
 
 # Enable Vi mode
@@ -111,6 +112,7 @@ alias ggf='gitk --follow --all -p '
 # Fuzzy aliases
 alias gco='git checkout $(git branch | fzf)'
 alias gcor='git checkout $(git branch --remote | fzf)'
+alias vim='nvim'
 
 
 # ###################################################################
