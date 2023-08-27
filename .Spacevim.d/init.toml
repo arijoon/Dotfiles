@@ -9,7 +9,7 @@
   # set spacevim theme. by default colorscheme layer is not loaded,
   # if you want to use more colorscheme, please load the colorscheme
   # layer
-  colorscheme = "space-vim-dark"
+  colorscheme = "onedark"
   colorscheme_bg = "dark"
   # Disable guicolors in basic mode, many terminal do not support 24bit
   # true colors
@@ -64,6 +64,12 @@
 # Language supports
 [[layers]]
   name = 'lang#elixir'
+[[layers]]
+  name = "lang#nix"
+[[layers]]
+  name = "lang#toml"
+[[layers]]
+  name = "lang#lua"
 [[layers]]
   name = "tmux"
 
