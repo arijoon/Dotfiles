@@ -36,4 +36,8 @@ function! myspacevim#after() abort
   nnoremap <Leader>ff :Files<Cr>
   nnoremap <Leader>fi :Rg<Cr>
 
+  " Line comments
+  nnoremap <Leader>y "+y
+  nnoremap <leader>c :call NERDComment(0, 'toggle')<Cr>
+
 endfunction
