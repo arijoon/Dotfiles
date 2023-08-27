@@ -1,7 +1,6 @@
 # Path to your oh-my-zsh configuration.
 #ZSH=~/.oh-my-zsh
 export ZSH=~/.oh-my-zsh
-export TERM="xterm-256color"
 DIR=~/.dotfiles/.zsh
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
@@ -10,7 +9,6 @@ DIR=~/.dotfiles/.zsh
 #ZSH_THEME="clean"
 #ZSH_THEME="robbyrussell"
 ZSH_THEME="powerlevel10k/powerlevel10k"
-
 
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
@@ -42,6 +40,11 @@ COMPLETION_WAITING_DOTS="true"
 # much faster.
 DISABLE_UNTRACKED_FILES_DIRTY="true"
 
+# FZF command setup
+# export FZF_CTRL_T_COMMAND="fd --type f --hidden"
+FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :50 {}'"
+FZF_ALT_C_OPTS="--preview 'tree -c {} | head -50'"
+
 # Uncomment following line if you want to the command execution time stamp shown 
 # in the history command output.
 # The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
@@ -56,6 +59,7 @@ plugins=(
   gitignore
   kubectl
   docker 
+  fzf
   # nix-zsh-completions
 )
 
@@ -65,7 +69,7 @@ source $ZSH/oh-my-zsh.sh
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR='vim'
 else
-  export EDITOR='mvim'
+  export EDITOR='vim'
 fi
 
 # Enable Vi mode
@@ -74,6 +78,9 @@ bindkey -M vicmd v edit-command-line
 bindkey '^R' history-beginning-search-backward
 bindkey '^W' history-beginning-search-forward
 export KEYTIMEOUT=1
+
+# global aliases
+alias reloadzsh='source ~/.zshrc'
 
 # ssh
 # export SSH_KEY_PATH="~/.ssh/dsa_id"
@@ -101,6 +108,9 @@ alias gl-f'=gl --follow -p -- '
 alias gls='git log --graph --pretty=format:"%Cred%h%Creset - %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit '
 alias ggb='git gui blame '
 alias ggf='gitk --follow --all -p '
+# Fuzzy aliases
+alias gco='git checkout $(git branch | fzf)'
+alias gcor='git checkout $(git branch --remote | fzf)'
 
 
 # ###################################################################
@@ -118,19 +128,25 @@ function paint_colourmap() {
   for i in {0..255}; do print -Pn "%K{$i}  %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%6)):#3}:+$'\n'}; done
 }
 
-# ###################################################################
-# Nix setup and hooks
-# ###################################################################
-if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then . ~/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
-if direnv --version &> /dev/null
-then
-  eval "$(direnv hook zsh)"
-fi
-
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f $DIR/p10k.zsh ]] || source $DIR/p10k.zsh
+
+# Load FZF setup
+fzf-share &> /dev/null && {
+  source $(fzf-share)/completion.zsh
+  source $(fzf-share)/key-bindings.zsh
+  source ~/.dotfiles/shell/fzf-completions.zsh
+}
 
 # ###################################################################
 # Load system local configuration
 # ###################################################################
 [[ ! -f ~/.zshrc_local.zsh ]] || source ~/.zshrc_local.zsh
+
+if [ -e /home/arman/.nix-profile/etc/profile.d/nix.sh ] && [[ -z ${NIX_PROFILES} ]]; then . /home/arman/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
+
+if direnv --version &> /dev/null
+then
+  eval "$(direnv hook zsh)"
+fi
+

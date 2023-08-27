@@ -1,4 +1,10 @@
-sudo apt-get install zsh git vim-gtk3 tmux -y
+if [ -f "/etc/arch-release" ]; then
+  sudo pacman -Syy
+  sudo pacman -S zsh git vim-gtk3 tmux stow
+else
+  sudo apt-get install zsh git gvim stow tmux -y
+fi
+
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 git clone --recursive https://github.com/arijoon/Dotfiles.git ~/.dotfiles
 rm ~/.zshrc
@@ -17,3 +23,8 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 curl -sLf https://spacevim.org/install.sh | bash
 
 ln -s ~/.dotfiles/.Spacevim.d ~/.SpaceVim.d
+
+# Setup stow files
+cd ~/.dotfiles/stow
+stow -vSt ~ git xmonad
+popd

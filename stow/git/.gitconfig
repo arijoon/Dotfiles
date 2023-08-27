@@ -1,5 +1,4 @@
 [core]
-	autocrlf = true
 	preloadindex = true
 	fscache = true
 	excludesfile = ~/.gitignore_global.txt

@@ -1,9 +1,42 @@
 source ~/.vimrc
 
+let mapleader = " "
+set ideajoin
+set ideamarks
+set ideaput
+set digraph
+set ignorecase
+
+" Mapping Keys
+" ,. navigation
+" f - find
+" i - info
+" d - definition/implementation
+
 " Map idea mappings
-:map <Leader>f :action SearchEverywhere<CR>
-:map <Leader>gf :action GotoFile<CR>
-:map <Leader>d :action GotoDeclaration<CR>
+:map <Leader>ff <Action>(SearchEverywhere)
+:map <Leader>fl <Action>(GotoFile)
+:map <Leader>fd <Action>(GotoDeclaration)
+:map <Leader>fa <Action>(GotoAction)
+
+" I Description display
+:map <Leader>ie <Action>(ShowErrorDescription)
+:map <Leader>id <Action>(QuickJavaDoc)
+
+" t tabs
+:map <Leader>to <Action>(CloseAllEditorsButActive)
+
+" Navigation
+:map <Leader>, <Action>(Back)
+:map <Leader>. <Action>(Forward)
+
+" g Git
+:map <Leader>gbd <Action>(GitToolBox.BlameDetails)
+
+" c Copy
+:map <Leader>cfp <Action>(CopyAbsolutePath)
+
+
 
 " Enable extensions
 set surround
