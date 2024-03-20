@@ -1,5 +1,7 @@
 { config, pkgs, ... }:
-
+let
+  localConfig = pkgs.callPackage (import ./local.nix) {};
+in
 {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
@@ -73,7 +75,7 @@
   };
 
   # Home Manager can also manage your environment variables through
-  # 'home.sessionVariables'. If you don't want to manage your shell through Home
+  # 'home.sessionVariables'. If y;ou don't want to manage your shell through Home
   # Manager then you have to manually source 'hm-session-vars.sh' located at
   # either
   #
@@ -87,6 +89,7 @@
     EDITOR = "nvim";
     KEYTIMEOUT = 1;
     TERM = "alacritty";
+    GPG_TTY="$(tty)";
   };
 
   # Let Home Manager install and manage itself.
@@ -122,7 +125,12 @@
 
     # Populate signing section
     # https://nix-community.github.io/home-manager/options.xhtml#opt-programs.git.signing.gpgPath
-    # signing
+    signing = {
+      signByDefault = localConfig.signByDefault;
+      key = localConfig.signingKey;
+      # USe system one
+      gpgPath = "/usr/bin/gpg";
+    };
     userEmail = "arman@yaraee.net";
     userName = "arijoon";
 
