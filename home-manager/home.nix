@@ -33,7 +33,10 @@
     bat
     fd
     fzf
+    htop
     httpie
+    jq
+    lazygit
     ncdu
     niv
     nix-du
