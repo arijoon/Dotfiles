@@ -1,0 +1,1 @@
+# Deprecated nvim config
