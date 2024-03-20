@@ -160,6 +160,9 @@
       bindkey "^[[H" beginning-of-line
       bindkey "^[[F" end-of-line
 
+      # Access systemwide zsh completions
+      fpath+=(/usr/share/zsh/vendor-completions)
+
       # For some reason home-manager does not
       # load its own env
       . ~/.nix-profile/etc/profile.d/nix.sh
@@ -170,6 +173,10 @@
         source $(fzf-share)/key-bindings.zsh
         source ${./zsh/fzf-completions.zsh}
       }
+
+      # Manually load as it seems to not trigger
+      # due to oh-my-zsh
+      autoload -U compinit && compinit
     '';
 
     plugins = [
