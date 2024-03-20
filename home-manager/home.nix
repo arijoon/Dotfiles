@@ -171,7 +171,9 @@ in
       bindkey '^W' history-beginning-search-forward
       bindkey "^[[H" beginning-of-line
       bindkey "^[[F" end-of-line
+    '';
 
+    initExtraBeforeCompInit = ''
       # Access systemwide zsh completions
       fpath+=(/usr/share/zsh/vendor-completions)
 
@@ -188,10 +190,11 @@ in
 
       # Load kubectl completions (move to local)
       source ${./zsh/completions/kubectl.zsh}
-
-      # Manually load as it seems to not trigger
-      # due to oh-my-zsh
-      autoload -U compinit && compinit
+    '';
+    
+    #  Added to .zshrnv
+    envExtra = ''
+      skip_global_compinit=1
     '';
 
     plugins = [
