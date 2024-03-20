@@ -171,6 +171,11 @@ in
       bindkey '^W' history-beginning-search-forward
       bindkey "^[[H" beginning-of-line
       bindkey "^[[F" end-of-line
+
+      # Auto completions using compdef must be done
+      # after compinit
+      # Load kubectl completions (move to local)
+      source ${./zsh/completions/kubectl.zsh}
     '';
 
     initExtraBeforeCompInit = ''
@@ -187,9 +192,6 @@ in
         source $(fzf-share)/key-bindings.zsh
         source ${./zsh/fzf-completions.zsh}
       }
-
-      # Load kubectl completions (move to local)
-      source ${./zsh/completions/kubectl.zsh}
     '';
     
     #  Added to .zshrnv
