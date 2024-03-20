@@ -1,4 +1,5 @@
 {}: {
   signingKey = "1C7FC51D87E2F7DC";
   signByDefault = true;
+  gitEmail = "arman@yaraee.net";
 }

@@ -45,6 +45,7 @@ in
     nixd
     nixpkgs-fmt
     ripgrep
+    tmux
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -131,7 +132,7 @@ in
       # USe system one
       gpgPath = "/usr/bin/gpg";
     };
-    userEmail = "arman@yaraee.net";
+    userEmail = localConfig.gitEmail;
     userName = "arijoon";
 
     extraConfig = {
@@ -184,6 +185,9 @@ in
         source $(fzf-share)/key-bindings.zsh
         source ${./zsh/fzf-completions.zsh}
       }
+
+      # Load kubectl completions (move to local)
+      source ${./zsh/completions/kubectl.zsh}
 
       # Manually load as it seems to not trigger
       # due to oh-my-zsh
