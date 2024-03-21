@@ -36,6 +36,7 @@
     nix-du
     nixd
     nixpkgs-fmt
+    nurl
     ripgrep
     tmux
   ];
