@@ -1,5 +1,22 @@
-{}: {
-  signingKey = "1C7FC51D87E2F7DC";
-  signByDefault = true;
-  gitEmail = "arman@yaraee.net";
+{ config, pkgs, ... }:
+{
+  home.username = "arman";
+  home.homeDirectory = "/home/arman";
+
+  programs.git = {
+    signing = {
+      signByDefault = true;
+      key = "1C7FC51D87E2F7DC";
+      # USe system one
+      gpgPath = "/usr/bin/gpg";
+    };
+
+    userEmail = "arman@yaraee.net";
+    userName = "arijoon";
+  };
+
+  # Additional packages only on this machine
+  home.packages = with pkgs; [
+    yq
+  ];
 }

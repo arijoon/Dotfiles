@@ -1,7 +1,4 @@
 { config, pkgs, ... }:
-let
-  localConfig = pkgs.callPackage (import ./local.nix) {};
-in
 {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
@@ -90,7 +87,7 @@ in
     EDITOR = "nvim";
     KEYTIMEOUT = 1;
     TERM = "alacritty";
-    GPG_TTY="$(tty)";
+    GPG_TTY = "$(tty)";
   };
 
   # Let Home Manager install and manage itself.
@@ -124,15 +121,6 @@ in
       "ay.local.*"
     ];
 
-    # Populate signing section
-    # https://nix-community.github.io/home-manager/options.xhtml#opt-programs.git.signing.gpgPath
-    signing = {
-      signByDefault = localConfig.signByDefault;
-      key = localConfig.signingKey;
-      # USe system one
-      gpgPath = "/usr/bin/gpg";
-    };
-    userEmail = localConfig.gitEmail;
     userName = "arijoon";
 
     extraConfig = {
@@ -193,7 +181,7 @@ in
         source ${./zsh/fzf-completions.zsh}
       }
     '';
-    
+
     #  Added to .zshrnv
     envExtra = ''
       skip_global_compinit=1

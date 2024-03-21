@@ -14,13 +14,17 @@
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
-    in {
+    in
+    {
       homeConfigurations."arman" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
 
         # Specify your home configuration modules here, for example,
         # the path to your home.nix.
-        modules = [ ./home.nix ];
+        modules = [
+          ./home.nix
+          ./local.nix
+        ];
 
         # Optionally use extraSpecialArgs
         # to pass through arguments to home.nix
