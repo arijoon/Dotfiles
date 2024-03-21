@@ -1,4 +1,6 @@
+if [[ -n "${INSTALL_NIX}" ]]; then
 sh <(curl -L https://nixos.org/nix/install) --no-daemon
+fi
 
 nix-shell -p git -c 'git clone --recursive https://github.com/arijoon/Dotfiles.git ~/.dotfiles'
 

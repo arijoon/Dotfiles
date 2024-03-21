@@ -6,10 +6,10 @@ Install my configuration via
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/arijoon/Dotfiles/master/install.arijoon.sh)"
 ```
 
-## Install via home-manager (requires nix installation)
-TODO move to a shell script
+## Install via home-manager
+
+To install single user nix as well, run the script with `INSTALL_NIX=1` env var
 
 ```sh
-ln -s ~/.dotfiles/home-manager ~/.config/home-manager
-nix run home-manager/release-23.11 -- switch
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/arijoon/Dotfiles/master/install.arijoon.hm.sh)"
 ```
