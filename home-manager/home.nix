@@ -83,7 +83,7 @@
     EDITOR = "nvim";
     KEYTIMEOUT = 1;
     TERM = "alacritty";
-    GPG_TTY = "$(tty)";
+    GPG_TTY = "$TTY";
   };
 
   # Let Home Manager install and manage itself.
@@ -148,6 +148,7 @@
     };
 
     initExtra = ''
+      export GPG_TTY="$TTY"
       source ${./zsh/p10k.zsh}
       bindkey -v
       bindkey -M vicmd v edit-command-line
