@@ -23,6 +23,7 @@
         # the path to your home.nix.
         modules = [
           ./home.nix
+          ./wsl.nix
           ./local.nix
         ];
 

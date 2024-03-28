@@ -1,5 +1,6 @@
 { config, pkgs, ... }:
 {
+  services.armanwsl.enable = false;
   home.username = "arman";
   home.homeDirectory = "/home/arman";
 
@@ -12,11 +13,10 @@
     };
 
     userEmail = "arman@yaraee.net";
-    userName = "arijoon";
   };
 
   # Additional packages only on this machine
-  home.packages = with pkgs; [
-    yq
-  ];
+  # home.packages = with pkgs; [
+  #   yq
+  # ];
 }
