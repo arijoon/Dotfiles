@@ -152,7 +152,8 @@
       source ${./zsh/p10k.zsh}
       bindkey -v
       bindkey -M vicmd v edit-command-line
-      bindkey '^R' history-beginning-search-backward
+      # Fzf plugin takes over history search
+      # bindkey '^R' history-beginning-search-backward
       bindkey '^W' history-beginning-search-forward
       bindkey "^[[H" beginning-of-line
       bindkey "^[[F" end-of-line
@@ -162,6 +163,7 @@
       # Load kubectl completions (move to local)
       source ${./zsh/completions/kubectl.zsh}
     '';
+
 
     initExtraBeforeCompInit = ''
       # Access systemwide zsh completions
