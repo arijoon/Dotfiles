@@ -24,6 +24,7 @@
         modules = [
           ./home.nix
           ./wsl.nix
+          ./xmonad.nix
           ./local.nix
         ];
 

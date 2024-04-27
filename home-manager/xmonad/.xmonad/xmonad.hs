@@ -23,7 +23,7 @@ import XMonad.Hooks.ManageDocks
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
-myTerminal      = "st"
+myTerminal      = "alacritty"
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
@@ -70,9 +70,6 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     -- launch dmenu
     , ((modm,               xK_p     ), spawn "rofi -show drun -show-icons")
-
-    -- launch gmrun
-    , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
 
     -- close focused window
     , ((modm .|. shiftMask, xK_c     ), kill)
@@ -252,7 +249,9 @@ myLogHook = return ()
 myStartupHook = do
   spawnOnce "nitrogen --restore &"
   spawnOnce "picom -f &"
-  spawnOnce "vmware-user &"
+
+-- For VMware this is needed
+-- spawnOnce "vmware-user &"
 
 ------------------------------------------------------------------------
 -- Now run xmonad with all the defaults we set up.

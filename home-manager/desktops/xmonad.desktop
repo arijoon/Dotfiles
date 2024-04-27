@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Name=XMonad Session
+Comment=Use this session to run Xmonad as your desktop environment
+Exec=/home/arman/.xsession
+Icon=
+Type=Application
+DesktopNames=XMONAD

@@ -171,7 +171,7 @@
 
       # For some reason home-manager does not
       # load its own env
-      . ~/.nix-profile/etc/profile.d/nix.sh
+      # . ~/.nix-profile/etc/profile.d/nix.sh
 
       # Load FZF setup
       fzf-share &> /dev/null && {
@@ -244,4 +244,11 @@
     vimdiffAlias = true;
     extraConfig = ":luafile ~/.config/nvim/init.lua";
   };
+
+  nix.package = pkgs.nix;
+  nix.extraOptions = ''
+    experimental-features = nix-command flakes 
+    nix-path = nixpkgs=${pkgs.path}
+    max-jobs = 8
+  '';
 }
