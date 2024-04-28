@@ -19,6 +19,9 @@ import XMonad.Util.SpawnOnce
 
 -- Xmobar imports
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.StatusBar
+import XMonad.Hooks.StatusBar.PP
 
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
@@ -260,7 +263,7 @@ myStartupHook = do
 --
 main = do
   xmproc <- spawnPipe "xmobar -x 0 ~/.xmobarrc.hs"
-  xmonad $ docks defaults
+  xmonad $ xmobarProp $ docks defaults
 
 -- A structure containing your configuration settings, overriding
 -- fields in the default config. Any you don't override, will

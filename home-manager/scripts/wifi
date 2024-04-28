@@ -1,4 +1,3 @@
-#!/usr/bin/env sh
 TYPES=($(nmcli device show | grep "GENERAL.TYPE" | awk '{print $2}'))
 STATES=($(nmcli device show | grep "GENERAL.STATE" | awk '{print $3}'))
 

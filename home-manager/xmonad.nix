@@ -15,10 +15,12 @@ in
         (name:
           pkgs.writeShellScriptBin name (readFile "${./scripts}/${name}"))
         [
-          "cpuTemp.sh"
-          "gpuTemp.sh"
-          "volume.sh"
-          "wifi.sh"
+          "cputemp"
+          "gputemp"
+          "diskusage"
+          "wifi"
+          # For general terminal use
+          "volume"
         ];
     in
     mkIf cfg.enable {
