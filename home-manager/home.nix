@@ -60,6 +60,7 @@
       source = ./neovim;
       recursive = true;
     };
+    ".config/alacritty/alacritty.yml".source = ./home-files/alacritty.yml;
 
     # # You can also set the file content immediately.
     # ".gradle/gradle.properties".text = ''
