@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, nixpkgs, ... }:
 {
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -252,4 +252,7 @@
     nix-path = nixpkgs=${pkgs.path}
     max-jobs = 8
   '';
+  nix.registry = {
+    nixpkgs.flake = nixpkgs;
+  };
 }

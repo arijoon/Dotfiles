@@ -25,11 +25,15 @@
           ./home.nix
           ./wsl.nix
           ./xmonad.nix
+          ./emacs.nix
           ./local.nix
         ];
 
         # Optionally use extraSpecialArgs
         # to pass through arguments to home.nix
+        extraSpecialArgs = {
+          inherit nixpkgs;
+        };
       };
     };
 }
