@@ -57,7 +57,7 @@
     };
     # Only link starter config
     ".config/nvim/" = {
-      source = ./neovim;
+      source = ./nvim-kickstart;
       recursive = true;
     };
     ".config/alacritty/alacritty.yml".source = ./home-files/alacritty.yml;
@@ -136,7 +136,7 @@
   programs.zsh = {
     enable = true;
     enableCompletion = true;
-    enableAutosuggestions = true;
+    autosuggestion.enable = true;
     history.extended = true;
 
     localVariables = {
