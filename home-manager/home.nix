@@ -60,7 +60,8 @@
       source = ./nvim-kickstart;
       recursive = true;
     };
-    ".config/alacritty/alacritty.yml".source = ./home-files/alacritty.yml;
+    # ".config/alacritty/alacritty.yml".source = ./home-files/alacritty.yml;
+    ".config/alacritty/alacritty.toml".source = ./home-files/alacritty.toml;
 
     # # You can also set the file content immediately.
     # ".gradle/gradle.properties".text = ''
@@ -246,7 +247,7 @@
     extraConfig = ":luafile ~/.config/nvim/init.lua";
   };
 
-  nix.package = pkgs.nix;
+  nix.package = pkgs.nixVersions.nix_2_22;
   nix.extraOptions = ''
     experimental-features = nix-command flakes 
     nix-path = nixpkgs=${pkgs.path}
