@@ -39,6 +39,7 @@
     nurl
     ripgrep
     tmux
+    nixfmt-rfc-style
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -94,6 +95,7 @@
     enable = true;
     enableZshIntegration = true;
     nix-direnv.enable = true;
+    nix-direnv.package = pkgs.nix-direnv.override { nix = pkgs.nixVersions.nix_2_22; };
   };
   programs.git = {
     enable = true;
@@ -252,6 +254,7 @@
     experimental-features = nix-command flakes 
     nix-path = nixpkgs=${pkgs.path}
     max-jobs = 8
+    !include ./rhino.conf
   '';
   nix.registry = {
     nixpkgs.flake = nixpkgs;
