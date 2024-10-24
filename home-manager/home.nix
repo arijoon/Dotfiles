@@ -132,6 +132,8 @@
         ignorecase = true;
         eol = "lf";
       };
+      rerere.enabled = true;
+      branch.sort = "-committerdate";
     };
   };
 
@@ -165,6 +167,7 @@
       # Auto completions using compdef must be done
       # after compinit
       # Load kubectl completions (move to local)
+      # TODO remove this
       source ${./zsh/completions/kubectl.zsh}
     '';
 
