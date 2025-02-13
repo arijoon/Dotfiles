@@ -1,4 +1,4 @@
-{ config, pkgs, nixpkgs, ... }:
+{ config, pkgs, nixpkgs, nixPkg, ... }:
 {
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -95,7 +95,7 @@
     enable = true;
     enableZshIntegration = true;
     nix-direnv.enable = true;
-    nix-direnv.package = pkgs.nix-direnv.override { nix = pkgs.nixVersions.nix_2_22; };
+    nix-direnv.package = pkgs.nix-direnv.override { nix = nixPkg.nix; };
   };
   programs.git = {
     enable = true;
@@ -252,7 +252,7 @@
     extraConfig = ":luafile ~/.config/nvim/init.lua";
   };
 
-  nix.package = pkgs.nixVersions.nix_2_22;
+  nix.package = nixPkg.nix;
   nix.extraOptions = ''
     experimental-features = nix-command flakes 
     nix-path = nixpkgs=${pkgs.path}
