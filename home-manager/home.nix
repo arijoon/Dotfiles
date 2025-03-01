@@ -255,7 +255,7 @@
   nix.package = nixPkg.nix;
   nix.extraOptions = ''
     experimental-features = nix-command flakes 
-    nix-path = nixpkgs=${pkgs.path}
+    nix-path = nixpkgs=flake:nixpkgs
     max-jobs = 8
     !include ./rhino.conf
   '';
