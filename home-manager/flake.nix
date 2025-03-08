@@ -41,5 +41,9 @@
           inherit nixPkg;
         };
       };
+
+      packages."${system}" = {
+        home-manager =  home-manager.defaultPackage."${system}";
+      };
     };
 }
