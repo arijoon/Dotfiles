@@ -29,6 +29,7 @@
         modules = [
           ./home.nix
           ./wsl.nix
+          ./shell.nix
           ./xmonad.nix
           ./emacs.nix
           ./local.nix
