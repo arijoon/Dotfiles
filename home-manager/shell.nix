@@ -13,6 +13,18 @@
         $env.config.buffer_editor = "vi";
         $env.config.edit_mode = "vi";
         $env.config.show_banner = false;
+        
+        $env.CARAPACE_BRIDGES = 'zsh,fish,bash,inshellisense'
+        $env.ENV_CONVERSIONS = {
+            "PATH": {
+                from_string: { |s| $s | split row (char esep) | path expand --no-symlink }
+                to_string: { |v| $v | path expand --no-symlink | str join (char esep) }
+            }
+            "Path": {
+                from_string: { |s| $s | split row (char esep) | path expand --no-symlink }
+                to_string: { |v| $v | path expand --no-symlink | str join (char esep) }
+            }
+        }
     '';
   };
 
@@ -27,9 +39,8 @@
 
     settings = {
       add_newline = true;
-      right_format = "$nix_shell$direnv$cmd_duration$time";
       format = ''
-        $directory$git_branch$git_status$fill
+        $directory$git_branch$git_status$fill $nix_shell$direnv$cmd_duration$time
         $character
       '';
       fill = {
