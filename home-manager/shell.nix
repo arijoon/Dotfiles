@@ -12,6 +12,7 @@
     extraConfig = ''
         $env.config.buffer_editor = "vi";
         $env.config.edit_mode = "vi";
+        $env.config.show_banner = false;
     '';
   };
 
@@ -26,11 +27,28 @@
 
     settings = {
       add_newline = true;
-      right_format = "$direnv$cmd_duration$time";
+      right_format = "$nix_shell$direnv$cmd_duration$time";
       format = ''
-        $directory$git_branch$git_status
+        $directory$git_branch$git_status$fill
         $character
       '';
+      fill = {
+        disabled = false;
+        symbol = ".";
+      };
+
+      direnv = {
+        disabled = false;
+        format = "[$symbol$loaded$allowed]($style)";
+        allowed_msg = "";
+        loaded_msg = "";
+      };
+
+      nix_shell = {
+        disabled = false;
+        symbol = "nix-shell ";
+        format = "[$symbol]($style)";
+      };
 
       time = {
         disabled = false;
@@ -59,6 +77,8 @@
       };
 
       character = {
+        # Nushell automatically adds a symbol for Vi modes
+        format = ""; 
         success_symbol = "[>](bold green)";
         error_symbol = "[>](bold red)";
       };
