@@ -45,6 +45,7 @@
 
       packages."${system}" = {
         home-manager =  home-manager.defaultPackage."${system}";
+        nix = nixPkg.nix;
       };
     };
 }
