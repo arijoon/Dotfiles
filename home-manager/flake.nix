@@ -4,7 +4,7 @@
   inputs = {
     # Specify the source of Home Manager and Nixpkgs.
     nixpkgs.url = "github:nixos/nixpkgs/24.11";
-    nixpkg.url = "https://flakehub.com/f/NixOS/nix/=2.26.1";
+    nixpkg.url = "https://flakehub.com/f/NixOS/nix/=2.29.1";
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";

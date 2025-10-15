@@ -40,6 +40,7 @@
     ripgrep
     tmux
     nixfmt-rfc-style
+    nixPkg.nix
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
