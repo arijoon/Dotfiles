@@ -1,17 +1,34 @@
 // Place your settings in this file to overwrite the default settings
 {
-    "window.zoomLevel": 0,
-    "workbench.iconTheme": "vscode-icons",
-    "editor.fontFamily": "Consolas, 'Courier New', monospace",
+    "settingsSync.ignoredSettings": [
+      "terminal.integrated.fontFamily",
+      "terminal.integrated.fontSize",
+    ],
+    "terminal.integrated.fontFamily": "Ubuntu Mono",
+    "emmet.includeLanguages": {"HTML (EEx)": "html"},
+    "beautify.config": {
+      "brace_style": "collapse,preserve-inline"
+    },
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false,
 
     "git.enabled": true,
 
-    "terminal.integrated.shell.windows": "C:\\cygwin\\bin\\zsh.exe",
+    "terminal.integrated.shell.windows": "C:\\Windows\\System32\\cmd.exe",
+    "terminal.integrated.env.windows": {
+      "CMDER_ROOT": "C:\\Tools\\Cmder"
+    },
+    "terminal.integrated.shellArgs.windows": [
+      "/k",
+      "%CMDER_ROOT%\\vendor\\bin\\vscode_init.cmd"
+    ],
+    "terminal.integrated.cwd": "", 
     "code-runner.saveFileBeforeRun": true,
     "code-runner.runInTerminal": true,
 
     // #Vim
-    "vim.leader": ",",
+    "vim.enableNeovim": true,
+    "vim.leader": "<space>",
     "vim.showcmd": true,
     "vim.ignorecase": true,
     "vim.easymotion": true,
@@ -22,35 +39,217 @@
     "vim.handleKeys":{
         "<C-a>": false,
         "<C-c>": false,
-        "<C-f>": false
+        "<C-f>": false,
+        "<C-p>": false,
+        "<C-t>": false
     },
     "vim.insertModeKeyBindings": [
         { "before": [ "<down>" ], "after": [ "d", "d", "p" ] },
         { "before": [ "<up>" ], "after": [ "d", "d", "k", "P" ] },
         { "before": [ "<right>" ], "after": [ "g", "t" ] },
         { "before": [ "<left>" ], "after": [ "g", "T" ] },
-        { "before": [ "j", "j" ], "after": [ "<esc>" ] }
+        { "before": [ "f", "d" ], "after": [ "<esc>" ] }
     ],
-    "vim.otherModesKeyBindings": [
+    "vim.normalModeKeyBindings": [
         { "before": [ "<down>" ], "after": [ "d", "d", "p" ] },
         { "before": [ "<up>" ], "after": [ "d", "d", "k", "P" ] },
         { "before": [ "<right>" ], "after": [ "g", "t" ] },
         { "before": [ "<left>" ], "after": [ "g", "T" ] }
     ],
-    "vim.otherModesKeyBindingsNonRecursive": [
-        { "before": [ "<leader>", "t" ], "after": [], "commands": [ { "command": "workbench.action.terminal.toggleTerminal", "args": [] } ] },
-        { "before": [ "<leader>", "f" ], "after": [], "commands": [ { "command": "workbench.action.quickOpen", "args": [] } ] },
+    "vim.normalModeKeyBindingsNonRecursive": [
+        { "before": [ "<leader>", ","], "after": [], "commands": [ { "command": "workbench.action.navigateBack", "when": "", "args": [] } ] },
+        { "before": [ "<leader>", "."], "after": [], "commands": [ { "command": "workbench.action.navigateForward", "when": "", "args": [] } ] },
+        { "before": [ "<leader>", "b", "f" ], "after": [], "commands": [ { "command": "editor.action.formatDocument", "args": [] } ] },
+        { "before": [ "<leader>", "c", "f", "p" ], "after": [], "commands": [ { "command": "copyFilePath", "args": [] } ] },
+        { "before": [ "<leader>", "c", "i" ], "after": [], "commands": [ { "command": "editor.action.commentLine", "args": [] } ] },
+        { "before": [ "<leader>", "c", "r", "p" ], "after": [], "commands": [ { "command": "copyRelativeFilePath", "args": [] } ] },
+        { "before": [ "<leader>", "c", "w" ], "after": [ "b", "v", "e", "\"", "+", "y" ] }, // Copy word under cursor
         { "before": [ "<leader>", "d" ], "after": [], "commands": [ { "command": "editor.action.goToDeclaration", "args": [] } ] },
+        { "before": [ "<leader>", "f", "e" ], "after": [], "commands": [ { "command": "workbench.action.findInFiles", "args": [] } ] },
+        // { "before": [ "<leader>", "f", "f" ], "after": [], "commands": [ { "command": "workbench.action.quickOpen", "args": [] } ] },
+        { "before": [ "<leader>", "f", "f" ], "after": [], "commands": [ { "command": "find-it-faster.findFiles" }] },
+        { "before": [ "<leader>", "f", "t" ], "after": [], "commands": [ { "command": "find-it-faster.findWithinFiles" }] },
+        { "before": [ "<leader>", "f", "u" ], "after": [], "commands": [ { "command": "find-it-faster.findWithinFilesWithType" }] },
+        { "before": [ "<leader>", "g", "s" ], "after": [], "commands": [ { "command": "workbench.action.showAllSymbols", "args": [] } ] },
+        { "before": [ "<leader>", "f", "o"], "commands": ["workbench.action.showAllEditors"] },
         { "before": [ "<leader>", "i" ], "after": [], "commands": [ { "command": "editor.action.goToImplementation", "args": [] } ] },
-        { "before": [ "<leader>", "r", "t" ], "after": [], "commands": [ { "command": "workbench.action.tasks.runTask", "args": [] } ] },
+        { "before": [ "<leader>", "k", "o" ], "after": [], "commands": [ { "command": "workbench.action.keepEditor", "args": [] } ] },
+        { "before": [ "<leader>", "m", "r", "a" ], "after": [], "commands": [ { "command": "workbench.action.tasks.runTask", "args": [] } ] },
+        { "before": [ "<leader>", "m", "r", "b" ], "after": [], "commands": [ { "command": "workbench.action.tasks.build", "args": [] } ] },
+        { "before": [ "<leader>", "m", "r", "t" ], "after": [], "commands": [ { "command": "workbench.action.tasks.test", "args": [] } ] },
+        { "before": [ "<leader>", "p" ], "after": ["\"", "+", "p"] },
         { "before": [ "<leader>", "r", "c" ], "after": [], "commands": [ { "command": "code-runner.run", "args": [] } ] },
-        { "before": [ "<leader>", "c", "i" ], "after": [], "commands": [ { "command": "editor.action.commentLine", "args": [] } ] }
+        { "before": [ "<leader>", "r", "t" ], "after": [], "commands": [ { "command": "workbench.action.tasks.runTask", "args": [] } ] },
+        { "before": [ "<leader>", "s", "a" ], "after": ["g", "g", "V", "G"] },
+        { "before": [ "<leader>", "s", "f"], "after": [], "commands": [ { "command": "workbench.files.action.showActiveFileInExplorer", "args": [] } ] },
+        { "before": [ "<leader>", "s", "p"], "after": [":split"] },
+        { "before": [ "<leader>", "s", "v"], "after": [":vsplit"] },
+        { "before": [ "<leader>", "t", "o" ], "commands": [":tabonly"] },
+        { "before": [ "<leader>", "t", "t" ], "after": [], "commands": [ { "command": "workbench.action.terminal.toggleTerminal", "args": [] } ] },
+        { "before": [ "<leader>", "u" ], "after": [], "commands": [ { "command": "editor.action.referenceSearch.trigger", "args": [] } ] },
+        { "before": [ "<leader>", "v", "p"], "after": [], "commands": [ { "command": "workbench.action.pinEditor", "when": "!activeEditorIsPinned", "args": [] } ] },
+        { "before": [ "<leader>", "v", "u", "p"], "after": [], "commands": [ { "command": "workbench.action.unpinEditor", "when": "activeEditorIsPinned", "args": [] } ] },
+        // Errors
+        { "before": ["<leader>", "e", "n"], "commands": ["editor.action.marker.next"] },
+        { "before": ["<leader>", "k", "k"], "commands": ["editor.action.showHover"] },
+        { "before": ["<leader>", "k", "d"], "commands": ["editor.action.showDefinitionPreviewHover"] }
     ],
-
-    // Ts
-    "tslint.enable": true,
+    "vim.visualModeKeyBindingsNonRecursive": [
+        { "before": [ "<leader>", "y" ], "after": ["\"", "+", "y"] },
+        { "before": [ "f", "d" ], "after": [ "<esc>" ] }
+    ],
 
     // Py
     "python.linting.enabled": true,
-    "python.linting.pylintArgs": ["--errors-only"]
+    "python.linting.lintOnSave": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": [
+        "--errors-only"
+    ],
+    // Go
+    "go.inferGopath": true,
+    "vim.disableAnnoyingNeovimMessage": true,
+    "jupyter.appendResults": true,
+    "gitlens.advanced.messages": {
+        "suppressCommitHasNoPreviousCommitWarning": false,
+        "suppressCommitNotFoundWarning": false,
+        "suppressFileNotUnderSourceControlWarning": false,
+        "suppressGitVersionWarning": false,
+        "suppressLineUncommittedWarning": false,
+        "suppressNoRepositoryWarning": false,
+        "suppressResultsExplorerNotice": false,
+        "suppressShowKeyBindingsNotice": true,
+        "suppressUpdateNotice": true,
+        "suppressWelcomeNotice": true
+    },
+    "sync.gist": "afdfd6135898584a85d307f92871d367",
+    "sync.autoDownload": false,
+    "sync.autoUpload": false,
+    "sync.forceDownload": false,
+    "sync.quietSync": false,
+    "sync.askGistName": false,
+    "gitlens.keymap": "alternate",
+    "sync.removeExtensions": true,
+    "sync.syncExtensions": true,
+    "editor.suggestSelection": "recentlyUsedByPrefix",
+    "python.jediEnabled": false,
+    "[javascript]": {
+      "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "files.associations": {
+      "*.ovpn": "properties"
+    },
+    "[json]": {
+      "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[jsonc]": {
+      "editor.defaultFormatter": "HookyQR.beautify"
+    },
+    "gitlens.codeLens.enabled": false,
+    "extensions.ignoreRecommendations": false,
+    "latex-workshop.view.pdf.viewer": "tab",
+    "workbench.colorTheme": "Monokai Dimmed",
+    "workbench.iconTheme": "material-icon-theme",
+
+    "explorer.autoReveal": false,
+    "jupyter.askForKernelRestart": false,
+    "workbench.editorAssociations": {
+      "*.ipynb": "jupyter.notebook.ipynb"
+    },
+    "diffEditor.ignoreTrimWhitespace": false,
+    "solidity.nodemodulespackage": "truffle",
+    "solidity.compileUsingRemoteVersion": "0.8.4",
+    "editor.cursorStyle": "line",
+    "editor.lineNumbers": "on",
+    "editor.wordSeparators": "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-",
+    "editor.wordWrap": "off",
+    "workbench.editor.wrapTabs": true,
+    "git.suggestSmartCommit": false,
+    "autoimport.filesToScan": "**/*.{ts,tsx,js,json}",
+    "python.languageServer": "Default",
+    "terminal.integrated.inheritEnv": false,
+    "javascript.preferences.importModuleSpecifier": "relative",
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "explorer.confirmDelete": false,
+    "hardhat.telemetry": false,
+    "jest.autoRun": "false",
+    "vsicons.dontShowNewVersionMessage": true,
+    "solidity.telemetry": false,
+    "[python]": {
+      "editor.formatOnType": true
+    },
+    "redhat.telemetry.enabled": false,
+    "nix.enableLanguageServer": true,
+    "nix.serverPath": "nil",
+    "nix.serverSettings": {
+      "nil": {
+        "diagnostics": {
+          // Ignored diagnostic kinds.
+          // The kind identifier is a snake_cased_string usually shown together
+          // with the diagnostic message.
+          // Type: [string]
+          // Example: ["unused_binding", "unused_with"]
+          "ignored": [],
+          // Files to exclude from showing diagnostics. Useful for generated files.
+          // It accepts an array of paths. Relative paths are joint to the workspace root.
+          // Glob patterns are currently not supported.
+          // Type: [string]
+          // Example: ["Cargo.nix"]
+          "excludedFiles": ["yarn-manifest.nix"],
+        },
+        "formatting": {
+            "command": [
+                "nixfmt"
+            ]
+        },
+        "nix": {
+          "maxMemoryMB": 2560
+        },
+      },
+    },
+    "typescript.tsserver.log": "off",
+    "gitlens.ai.experimental.provider": "openai",
+    "gitlens.ai.experimental.openai.model": "gpt-4-1106-preview",
+    "files.saveConflictResolution": "overwriteFileOnDisk",
+    "typescript.disableAutomaticTypeAcquisition": true,
+    "git.openRepositoryInParentFolders": "always",
+    "workbench.externalBrowser": "firefox-trunk",
+    "geminicodeassist.project": "",
+    "yaml.schemas": {
+      "file:///home/arman/.vscode/extensions/atlassian.atlascode-4.0.6/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml"
+    },
+    "atlascode.jira.enabled": true,
+    "atlascode.bitbucket.enabled": false,
+    "atlascode.jira.lastCreateSiteAndProject": {
+      "siteId": "43b1755e-4ee0-4095-8872-3b3d3ff83ba2",
+      "projectKey": "BINF"
+    },
+    "azureTerraform.survey": {
+      "surveyPromptDate": "never",
+      "surveyPromptIgnoredCount": 0
+    },
+    "github.copilot.enable": {
+      "*": true,
+      "plaintext": false,
+      "markdown": false,
+      "scminput": false
+    },
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "[dockercompose]": {
+      "editor.insertSpaces": true,
+      "editor.tabSize": 2,
+      "editor.autoIndent": "advanced",
+      "editor.quickSuggestions": {
+        "other": true,
+        "comments": false,
+        "strings": true
+      },
+      "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "[github-actions-workflow]": {
+      "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "docker.extension.enableComposeLanguageServer": false,
+    "editor.tabCompletion": "on",
+    "editor.acceptSuggestionOnCommitCharacter": false,
 }
