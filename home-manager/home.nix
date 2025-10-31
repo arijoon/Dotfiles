@@ -1,4 +1,4 @@
-{ config, pkgs, nixpkgs, nixPkg, ... }:
+{ config, pkgs, nixpkgs, nixpkgs-latest, nixPkg, ... }:
 {
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -257,11 +257,12 @@
   nix.package = nixPkg.nix;
   nix.extraOptions = ''
     experimental-features = nix-command flakes 
-    nix-path = nixpkgs=flake:nixpkgs
+    nix-path = nixpkgs=flake:nixpkgs nixpkgs-latest=flake:nixpkgs-latest
     max-jobs = 8
     !include ./rhino.conf
   '';
   nix.registry = {
     nixpkgs.flake = nixpkgs;
+    nixpkgs-latest.flake = nixpkgs-latest;
   };
 }
