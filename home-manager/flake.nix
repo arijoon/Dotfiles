@@ -21,6 +21,10 @@
         inherit system;
          config.allowUnfree = true;
       };
+      pkgs-latest = import nixpkgs-latest { 
+        inherit system;
+         config.allowUnfree = true;
+      };
       nixPkg = nixpkg.packages."${system}"; 
 
       commonMods = [
@@ -66,7 +70,7 @@
         # Optionally use extraSpecialArgs
         # to pass through arguments to home.nix
         extraSpecialArgs = {
-          inherit nixpkgs nixpkgs-latest;
+          inherit nixpkgs nixpkgs-latest pkgs-latest;
           inherit nixPkg;
         };
       };

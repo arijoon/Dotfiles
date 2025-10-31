@@ -1,4 +1,18 @@
-{ config, pkgs, ... }:
+{ config, pkgs, pkgs-latest, ... }:
+let
+  inherit (builtins) readFile;
+  scripts = map
+    (name:
+      pkgs.writeShellScriptBin name (readFile "${../scripts}/${name}"))
+    [
+      "cputemp"
+      "gputemp"
+      "diskusage"
+      "wifi"
+      # For general terminal use
+      "volume"
+    ];
+in
 {
   home.username = "dsk";
   home.homeDirectory = "/home/dsk";
@@ -15,5 +29,6 @@
   # Additional packages only on this machine
   home.packages = with pkgs; [
     keepassxc
-  ];
+    pkgs-latest.veracrypt
+  ] ++ scripts;
 }
