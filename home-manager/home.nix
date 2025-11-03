@@ -1,4 +1,12 @@
-{ config, pkgs, nixpkgs, nixpkgs-latest, nixPkg, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  nixpkgs,
+  nixpkgs-latest,
+  nix,
+  ...
+}:
 {
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -34,13 +42,13 @@
     ncdu
     niv
     nix-du
-    nixd
+    nil
     nixpkgs-fmt
     nurl
     ripgrep
     tmux
     nixfmt-rfc-style
-    nixPkg.nix
+    nix
     zip
     unzip
   ];
@@ -61,7 +69,7 @@
     };
     # Only link starter config
     ".config/nvim/" = {
-      source = ./nvim-kickstart;
+      source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home-manager/nvim-kickstart";
       recursive = true;
     };
     # ".config/alacritty/alacritty.yml".source = ./home-files/alacritty.yml;
@@ -99,7 +107,7 @@
     enableZshIntegration = true;
     enableNushellIntegration = true;
     nix-direnv.enable = true;
-    nix-direnv.package = pkgs.nix-direnv.override { nix = nixPkg.nix; };
+    nix-direnv.package = pkgs.nix-direnv.override { inherit nix; };
   };
   programs.git = {
     enable = true;
@@ -157,40 +165,41 @@
       FZF_ALT_C_OPTS = "--preview 'tree -c {} | head -50'";
     };
 
-    initExtra = ''
-      export GPG_TTY="$TTY"
-      source ${./zsh/p10k.zsh}
-      bindkey -v
-      bindkey -M vicmd v edit-command-line
-      # Fzf plugin takes over history search
-      # bindkey '^R' history-beginning-search-backward
-      bindkey '^W' history-beginning-search-forward
-      bindkey "^[[H" beginning-of-line
-      bindkey "^[[F" end-of-line
+    initContent = lib.mkMerge [
+      (lib.mkOrder 550 ''
+        # Access systemwide zsh completions
+        fpath+=(/usr/share/zsh/vendor-completions)
 
-      # Auto completions using compdef must be done
-      # after compinit
-      # Load kubectl completions (move to local)
-      # TODO remove this
-      source ${./zsh/completions/kubectl.zsh}
-    '';
+        # For some reason home-manager does not
+        # load its own env
+        # . ~/.nix-profile/etc/profile.d/nix.sh
 
+        # Load FZF setup
+        fzf-share &> /dev/null && {
+          source $(fzf-share)/completion.zsh
+          source $(fzf-share)/key-bindings.zsh
+          source ${./zsh/fzf-completions.zsh}
+        }
+      '')
 
-    initExtraBeforeCompInit = ''
-      # Access systemwide zsh completions
-      fpath+=(/usr/share/zsh/vendor-completions)
+      (lib.mkOrder 1000 ''
+        export GPG_TTY="$TTY"
+        source ${./zsh/p10k.zsh}
+        bindkey -v
+        bindkey -M vicmd v edit-command-line
+        # Fzf plugin takes over history search
+        # bindkey '^R' history-beginning-search-backward
+        bindkey '^W' history-beginning-search-forward
+        bindkey "^[[H" beginning-of-line
+        bindkey "^[[F" end-of-line
 
-      # For some reason home-manager does not
-      # load its own env
-      # . ~/.nix-profile/etc/profile.d/nix.sh
-
-      # Load FZF setup
-      fzf-share &> /dev/null && {
-        source $(fzf-share)/completion.zsh
-        source $(fzf-share)/key-bindings.zsh
-        source ${./zsh/fzf-completions.zsh}
-      }
-    '';
+        # Auto completions using compdef must be done
+        # after compinit
+        # Load kubectl completions (move to local)
+        # TODO remove this
+        source ${./zsh/completions/kubectl.zsh}
+      '')
+    ];
 
     #  Added to .zshrnv
     envExtra = ''
@@ -253,10 +262,14 @@
     # defaultEditor = true;
     viAlias = true;
     vimdiffAlias = true;
-    extraConfig = ":luafile ~/.config/nvim/init.lua";
+    # extraConfig = ":luafile ${config.home.homeDirectory}/.config/nvim/init.lua";
+    extraPackages = with pkgs; [
+      lua-language-server
+      nil
+    ];
   };
 
-  nix.package = nixPkg.nix;
+  nix.package = nix;
   nix.extraOptions = ''
     experimental-features = nix-command flakes 
     nix-path = nixpkgs=flake:nixpkgs nixpkgs-latest=flake:nixpkgs-latest
