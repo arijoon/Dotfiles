@@ -29,6 +29,7 @@ in
   # Additional packages only on this machine
   home.packages = with pkgs; [
     keepassxc
+    pkgs-latest.btop
     pkgs-latest.veracrypt
   ] ++ scripts;
 }
