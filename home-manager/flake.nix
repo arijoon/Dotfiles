@@ -67,8 +67,6 @@
         # Specify your home configuration modules here, for example,
         # the path to your home.nix.
         modules = commonMods ++ [
-          ./home.nix
-          ./shell.nix
           # ./xmonad.nix
           # ./emacs.nix
           ./users/dsk.nix
@@ -83,7 +81,7 @@
       };
 
       packages."${system}" = {
-        home-manager = home-manager.defaultPackage."${system}";
+        home-manager = home-manager.packages."${system}".default;
         determinate-nix = determinate-nix.default;
         upstream-nix = nix.default;
       };

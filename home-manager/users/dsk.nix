@@ -27,9 +27,22 @@ in
   };
 
   # Additional packages only on this machine
-  home.packages = with pkgs; [
-    keepassxc
-    pkgs-latest.btop
-    pkgs-latest.veracrypt
-  ] ++ scripts;
+  home.packages = let 
+    latest = with pkgs-latest; [
+      btop
+      magic-wormhole
+      rclone
+      veracrypt
+    ];
+  in
+    with pkgs; [
+      duf
+      keepassxc
+      lazydocker
+      lshw
+      mtr
+      ncdu
+      termshark
+      # zoxide
+  ] ++ scripts ++ latest;
 }
