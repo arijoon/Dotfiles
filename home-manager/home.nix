@@ -154,7 +154,12 @@
     enable = true;
     enableCompletion = true;
     autosuggestion.enable = true;
-    history.extended = true;
+    history = {
+      extended = true;
+      ignoreAllDups = true;
+      save = 100000;
+      size = 100000;
+    };
 
     localVariables = {
       COMPLETION_WAITING_DOTS = "true";
