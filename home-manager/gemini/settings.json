@@ -1,0 +1,61 @@
+{
+  "ide": {
+    "enabled": true,
+    "hasSeenNudge": true
+  },
+  "general": {
+    "vimMode": true,
+    "disableAutoUpdate": true,
+    "previewFeatures": true,
+    "preferredEditor": "code"
+  },
+  "ui": {
+    "theme": "SolarizedDarkNoPurple",
+    "customThemes": {
+      "SolarizedDarkNoPurple": {
+        "name": "SolarizedDarkNoPurple",
+        "type": "custom",
+        "Background": "#002b36",
+        "Foreground": "#839496",
+        "Comment": "#586e75",
+        "Gray": "#073642",
+        "AccentRed": "#dc322f",
+        "AccentGreen": "#859900",
+        "AccentYellow": "#b58900",
+        "AccentBlue": "#268bd2",
+        "AccentCyan": "#2aa198",
+        "AccentPurple": "#2aa198",
+        "LightBlue": "#2aa198",
+        "DiffAdded": "#859900",
+        "DiffRemoved": "#dc322f",
+        "DiffModified": "#268bd2",
+        "GradientColors": [
+          "#2aa198",
+          "#268bd2",
+          "#859900"
+        ]
+      }
+    },
+    "showMemoryUsage": true
+  },
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "privacy": {
+    "disableUsageStatistics": true
+  },
+  "context": {
+    "fileNames": [
+      "AGENTS.md",
+      "CONTEXT.md",
+      "GEMINI.md"
+    ],
+    "directorySearch": {
+      "include": [
+        ".llm"
+      ]
+    }
+  }
+}

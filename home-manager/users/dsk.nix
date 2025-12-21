@@ -33,6 +33,7 @@ in
       magic-wormhole
       rclone
       veracrypt
+      vscode
     ];
   in
     with pkgs; [

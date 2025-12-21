@@ -72,6 +72,8 @@
       source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home-manager/nvim-kickstart";
       recursive = true;
     };
+    # Only link starter config
+    ".gemini/settings.json".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home-manager/gemini/settings.json";
     # ".config/alacritty/alacritty.yml".source = ./home-files/alacritty.yml;
     ".config/alacritty/alacritty.toml".source = ./home-files/alacritty.toml;
 
