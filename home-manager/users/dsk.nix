@@ -1,17 +1,6 @@
 { config, pkgs, pkgs-latest, ... }:
 let
   inherit (builtins) readFile;
-  scripts = map
-    (name:
-      pkgs.writeShellScriptBin name (readFile "${../scripts}/${name}"))
-    [
-      "cputemp"
-      "gputemp"
-      "diskusage"
-      "wifi"
-      # For general terminal use
-      "volume"
-    ];
 in
 {
   home.username = "dsk";
@@ -28,6 +17,18 @@ in
 
   # Additional packages only on this machine
   home.packages = let 
+    scriptswithDeps = [
+      (pkgs.writeShellApplication {
+        name = "towebm";
+        text = readFile "${../scripts}/towebm";
+        runtimeInputs = [ pkgs.ffmpeg ];
+      })
+      (pkgs.writeShellApplication {
+        name = "towebmnoaudio";
+        text = readFile "${../scripts}/towebmnoaudio";
+        runtimeInputs = [ pkgs.ffmpeg ];
+      })
+    ];
     latest = with pkgs-latest; [
       btop
       magic-wormhole
@@ -45,5 +46,5 @@ in
       ncdu
       termshark
       # zoxide
-  ] ++ scripts ++ latest;
+  ] ++ scriptswithDeps ++ latest;
 }
