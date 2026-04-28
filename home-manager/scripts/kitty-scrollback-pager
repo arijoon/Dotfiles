@@ -1,0 +1,12 @@
+# Strip ANSI escape sequences before piping into nvim so the scrollback
+# buffer is clean text we can yank — no '[m', '[38:5:31m', ']133;A...'
+# debris. Handles:
+#   - CSI:  ESC [ ... letter           (color, cursor, etc.)
+#   - OSC:  ESC ] ... (BEL | ESC \)    (titles, OSC 133 prompt marks)
+perl -pe '
+  s/\e\[[0-9;:?]*[A-Za-z]//g;
+  s/\e\][^\a\e]*(?:\a|\e\\)//g;
+' | nvim -R \
+    -c "set nonumber norelativenumber nolist showtabline=0 foldcolumn=0" \
+    -c "autocmd VimEnter * normal! G" \
+    -

@@ -1,0 +1,12 @@
+# Reinstall an AI agent CLI from numtide/llm-agents.nix at HEAD of main.
+# Removing the existing entry is best-effort — first install just adds.
+
+if [ $# -lt 1 ]; then
+  echo "Usage: update-ai <package-name>  (e.g. claude, gemini-cli)" >&2
+  exit 1
+fi
+
+pkg="$1"
+
+nix profile remove "$pkg" 2>/dev/null || true
+nix profile add "github:numtide/llm-agents.nix/main#$pkg"

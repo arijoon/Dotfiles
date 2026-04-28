@@ -7,9 +7,13 @@
     # Use this for users without determinate nix
     nix-src.url = "https://flakehub.com/f/NixOS/nix/=2.30.2";
     determinate-nix-src.url = "https://flakehub.com/f/DeterminateSystems/nix-src/=3.12.0";
-    nixpkgs-latest.url = "github:nixos/nixpkgs";
+    nixpkgs-latest.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     home-manager = {
       url = "github:nix-community/home-manager/release-25.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nixgl = {
+      url = "github:nix-community/nixGL";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -21,6 +25,7 @@
       determinate-nix-src,
       nix-src,
       home-manager,
+      nixgl,
       ...
     }:
     let
@@ -39,6 +44,9 @@
       commonMods = [
         ./home.nix
         ./shell.nix
+        ./nixgl.nix
+        ./kitty.nix
+        ./common-scripts.nix
       ];
     in
     {
@@ -57,7 +65,7 @@
         inherit pkgs;
 
         extraSpecialArgs = {
-          inherit nixpkgs nixpkgs-latest pkgs-latest;
+          inherit nixpkgs nixpkgs-latest pkgs-latest nixgl;
           nix = nix.default;
         };
       };
@@ -76,7 +84,7 @@
         # Optionally use extraSpecialArgs
         # to pass through arguments to home.nix
         extraSpecialArgs = {
-          inherit nixpkgs nixpkgs-latest pkgs-latest;
+          inherit nixpkgs nixpkgs-latest pkgs-latest nixgl;
           nix = determinate-nix.default;
         };
       };
