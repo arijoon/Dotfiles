@@ -47,6 +47,7 @@
     nurl
     ripgrep
     tmux
+    zellij
     nixfmt-rfc-style
     nix
     zip
@@ -76,6 +77,7 @@
     ".gemini/settings.json".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home-manager/gemini/settings.json";
     # ".config/alacritty/alacritty.yml".source = ./home-files/alacritty.yml;
     ".config/alacritty/alacritty.toml".source = ./home-files/alacritty.toml;
+    ".config/zellij/config.kdl".source = ./home-files/zellij.kdl;
 
     # # You can also set the file content immediately.
     # ".gradle/gradle.properties".text = ''
@@ -229,6 +231,11 @@
           hash = "sha256-nTxeSUlYdl25MFZoLtpYTYq661iaik1RMj21ClOMY3c=";
         };
         file = "zsh-completion-sync.plugin.zsh";
+      }
+      {
+        name = "fzf-tab";
+        src = pkgs.zsh-fzf-tab;
+        file = "share/fzf-tab/fzf-tab.plugin.zsh";
       }
     ];
     oh-my-zsh = {

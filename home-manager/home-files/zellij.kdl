@@ -1,0 +1,64 @@
+// Zellij config — defaults + xmonad-aware tweaks
+// Docs: https://zellij.dev/documentation/
+//
+// xmonad uses mod1Mask (Alt) globally, so Alt-shortcuts are unreachable
+// inside Zellij. We keep all the Ctrl-mode prefixes (Ctrl+p pane,
+// Ctrl+t tab, Ctrl+s scroll, Ctrl+n resize, Ctrl+o session, Ctrl+g lock)
+// and rebind the Alt quicknav shortcuts to Ctrl+Shift.
+
+// Session persistence
+session_serialization true
+serialize_pane_viewport true
+scrollback_lines_to_serialize 10000
+
+copy_on_select false
+copy_command "xclip -selection clipboard"
+
+scroll_buffer_size 10000
+
+default_layout "default"
+pane_frames false
+simplified_ui false
+mouse_mode false
+
+// Inherit all default keybinds, then override the Alt quicknav binds
+// (which collide with xmonad) with Ctrl+Shift equivalents.
+keybinds {
+    shared_except "locked" {
+        // Pane focus — replace Alt+hjkl / Alt+arrows
+        bind "Ctrl Shift h" { MoveFocusOrTab "Left"; }
+        bind "Ctrl Shift l" { MoveFocusOrTab "Right"; }
+        bind "Ctrl Shift j" { MoveFocus "Down"; }
+        bind "Ctrl Shift k" { MoveFocus "Up"; }
+
+        // New pane / floating — replace Alt+n / Alt+f
+        bind "Ctrl Shift e" { NewPane; }
+        bind "Ctrl Shift f" { ToggleFloatingPanes; }
+
+        // Tab nav — replace Alt+[ / Alt+]
+        bind "Ctrl Shift p" { GoToPreviousTab; }
+        bind "Ctrl Shift n" { GoToNextTab; }
+
+        // Resize — replace Alt+= / Alt+-
+        bind "Ctrl Shift =" { Resize "Increase"; }
+        bind "Ctrl Shift -" { Resize "Decrease"; }
+    }
+}
+
+// Theme — close to your tmux status colors
+themes {
+    arman {
+        fg "#000000"
+        bg "#afafd7"
+        black "#262626"
+        red "#af0000"
+        green "#005f00"
+        yellow "#5f5f00"
+        blue "#005faf"
+        magenta "#5f005f"
+        cyan "#005f5f"
+        white "#eeeeee"
+        orange "#d75f00"
+    }
+}
+theme "arman"
