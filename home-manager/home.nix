@@ -219,6 +219,17 @@
         src = pkgs.zsh-powerlevel10k;
         file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
       }
+      {
+        name = "zsh-completion-sync";
+        # Reloads zsh completions when $FPATH / $XDG_DATA_DIRS change
+        src = pkgs.fetchFromGitHub {
+          owner = "BronzeDeer";
+          repo = "zsh-completion-sync";
+          rev = "44f4cda77e733a027dc03e9326c3f2f300e10518";
+          hash = "sha256-nTxeSUlYdl25MFZoLtpYTYq661iaik1RMj21ClOMY3c=";
+        };
+        file = "zsh-completion-sync.plugin.zsh";
+      }
     ];
     oh-my-zsh = {
       enable = true;

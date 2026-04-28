@@ -23,5 +23,6 @@
     mongosh
     alacritty
     nerd-fonts.ubuntu-mono
+    nerd-fonts.symbols-only
   ];
 }

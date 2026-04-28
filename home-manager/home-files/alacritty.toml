@@ -1,8 +1,8 @@
 [font]
-size = 13.0
+size = 11.0
 
 [font.normal]
-family = "UbuntuMono Nerd Font"
+family = "Ubuntu Mono"
 style = "Regular"
 
 [window.dimensions]
