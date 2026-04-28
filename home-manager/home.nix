@@ -238,7 +238,6 @@
         "github"
         "gitignore"
         "kubectl"
-        "docker"
         "fzf"
         # "nix-zsh-completions"
       ];
