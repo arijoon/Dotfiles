@@ -5,7 +5,7 @@
     # Specify the source of Home Manager and Nixpkgs.
     nixpkgs.url = "github:nixos/nixpkgs/25.05";
     # Use this for users without determinate nix
-    nix-src.url = "https://flakehub.com/f/NixOS/nix/=2.29.1";
+    nix-src.url = "https://flakehub.com/f/NixOS/nix/=2.30.2";
     determinate-nix-src.url = "https://flakehub.com/f/DeterminateSystems/nix-src/=3.12.0";
     nixpkgs-latest.url = "github:nixos/nixpkgs";
     home-manager = {
@@ -49,6 +49,7 @@
           ./wsl.nix
           ./xmonad.nix
           ./emacs.nix
+          ./users/arman.nix
         ];
 
         # Optionally use extraSpecialArgs
