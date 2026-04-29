@@ -17,8 +17,12 @@ in
   };
 
   config = mkIf cfg.enable {
+    fonts.fontconfig.enable = true;
+
     home.packages = [
       (config.lib.nixGL.wrap pkgs-latest.kitty)
+      pkgs.nerd-fonts.ubuntu-mono
+      pkgs.nerd-fonts.symbols-only
       (pkgs.writeShellApplication {
         name = "kitty-scrollback-pager";
         runtimeInputs = with pkgs; [ perl ];

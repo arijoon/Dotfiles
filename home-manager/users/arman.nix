@@ -15,14 +15,10 @@
     userName = "arijoon";
   };
 
-  fonts.fontconfig.enable = true;
-
   # Additional packages only on this machine
   home.packages = with pkgs; [
     yq
     mongosh
     alacritty
-    nerd-fonts.ubuntu-mono
-    nerd-fonts.symbols-only
   ];
 }
