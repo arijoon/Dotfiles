@@ -47,6 +47,7 @@
         ./nixgl.nix
         ./kitty.nix
         ./common-scripts.nix
+        ./sandbox.nix
       ];
     in
     {

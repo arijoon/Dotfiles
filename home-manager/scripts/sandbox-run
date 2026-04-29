@@ -1,0 +1,165 @@
+# sandbox-run — reusable landrun wrapper with sane defaults.
+#
+# Pre-allows the system paths CLI tools usually need (nix store, /usr,
+# common /etc bits, /dev tty/null/urandom, /tmp), grants rwx to $PWD,
+# and forwards a standard set of env vars. Network is ON by default.
+#
+# Usage:
+#   sandbox-run [opts] [-l <landrun args...>] -- <command> [args...]
+#
+# Options:
+#   -N, --no-network      Block network access (network is on by default).
+#   -l, --landrun         Treat every following arg as a raw landrun arg
+#                         until the closing -- is reached. Use this once,
+#                         right before --, e.g.
+#                         -l --rw "$HOME/.cache/foo" --ro /opt -- foo
+#   -h, --help            Show this help.
+#
+# Env vars (used by presets like sandbox-ai):
+#   SANDBOX_RW_PATHS      Newline-separated list of extra paths granted
+#                         --rw. Missing paths are skipped silently.
+#   SANDBOX_ROX_PATHS     Same, but granted --rox (read + execute).
+#   SANDBOX_RO_PATHS      Same, but granted --ro (read only).
+#   SANDBOX_FORWARD_ENV   Newline-separated list of env-var NAMES that
+#                         should be forwarded into the sandbox.
+#
+# Examples:
+#   sandbox-run -- bash
+#   sandbox-run -N -- ./build.sh
+#   sandbox-run -l --rw "$HOME/.cache/foo" --ro /opt -- foo --bar
+
+network=1
+extra=()
+
+usage() {
+  cat >&2 <<'EOF'
+sandbox-run — reusable landrun wrapper with sane defaults.
+
+Pre-allows the system paths CLI tools usually need (nix store, /usr,
+common /etc bits, /dev tty/null/urandom, /tmp), grants rwx to $PWD,
+and forwards a standard set of env vars. Network is ON by default.
+
+Usage:
+  sandbox-run [opts] [-l <landrun args...>] -- <command> [args...]
+
+Options:
+  -N, --no-network      Block network access (network is on by default).
+  -l, --landrun         Treat every following arg as a raw landrun arg
+                        until the closing -- is reached. Use this once,
+                        right before --, e.g.
+                        -l --rw "$HOME/.cache/foo" --ro /opt -- foo
+  -h, --help            Show this help.
+
+Env vars (used by presets like sandbox-ai):
+  SANDBOX_RW_PATHS      Newline-separated list of extra paths granted
+                        --rw. Missing paths are skipped silently.
+  SANDBOX_ROX_PATHS     Same, but granted --rox (read + execute).
+  SANDBOX_RO_PATHS      Same, but granted --ro (read only).
+  SANDBOX_FORWARD_ENV   Newline-separated list of env-var NAMES that
+                        should be forwarded into the sandbox.
+
+Examples:
+  sandbox-run -- bash
+  sandbox-run -N -- ./build.sh
+  sandbox-run -l --rw "$HOME/.cache/foo" --ro /opt -- foo --bar
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -N|--no-network)
+      network=0
+      shift
+      ;;
+    -l|--landrun)
+      shift
+      while [[ $# -gt 0 && "$1" != "--" ]]; do
+        extra+=("$1")
+        shift
+      done
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      echo "sandbox-run: unknown option: $1" >&2
+      exit 2
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if [[ $# -eq 0 ]]; then
+  echo "sandbox-run: no command specified (use -- before the command)" >&2
+  exit 2
+fi
+
+args=(
+  --add-exec
+  --rox /nix/store
+  --rox /usr
+  --rox "$HOME/.nix-profile"
+  --rox /etc/ssl
+  --rox /etc/resolv.conf
+  --rox /etc/nsswitch.conf
+  --rox /etc/hosts
+  --rox /etc/ssl/certs/ca-certificates.crt
+  --rw /dev/pts
+  --rw /dev/tty
+  --rw /dev/ptmx
+  --rw /dev/null
+  --rw /dev/urandom
+  --rw /tmp
+  --ro /proc
+  --rwx "$PWD"
+  --env HOME
+  --env PATH
+  --env USER
+  --env SHELL
+  --env TERM
+  --env COLORTERM
+  --env LANG
+  --env LC_ALL
+  --env NIX_PATH
+  --env NIX_PROFILES
+  --env NIX_SSL_CERT_FILE
+  --env SSL_CERT_FILE
+)
+
+add_paths() {
+  local flag="$1" list="$2" p
+  [[ -z "$list" ]] && return
+  while IFS= read -r p; do
+    [[ -z "$p" ]] && continue
+    [[ -e "$p" ]] || continue
+    args+=("$flag" "$p")
+  done <<< "$list"
+}
+
+add_paths --rw  "${SANDBOX_RW_PATHS:-}"
+add_paths --rox "${SANDBOX_ROX_PATHS:-}"
+add_paths --ro  "${SANDBOX_RO_PATHS:-}"
+
+if [[ -n "${SANDBOX_FORWARD_ENV:-}" ]]; then
+  while IFS= read -r e; do
+    [[ -z "$e" ]] && continue
+    args+=(--env "$e")
+  done <<< "$SANDBOX_FORWARD_ENV"
+fi
+
+if [[ $network -eq 1 ]]; then
+  args+=(--unrestricted-network)
+fi
+
+if [[ ${#extra[@]} -gt 0 ]]; then
+  args+=("${extra[@]}")
+fi
+
+exec landrun "${args[@]}" -- "$@"

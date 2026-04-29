@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  pkgs-latest,
   nixpkgs,
   nixpkgs-latest,
   nix,
@@ -52,6 +53,7 @@
     nix
     zip
     unzip
+    pkgs-latest.worktrunk
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -100,7 +102,6 @@
   home.sessionVariables = {
     EDITOR = "nvim";
     KEYTIMEOUT = 1;
-    TERM = "alacritty";
     GPG_TTY = "$TTY";
   };
 
@@ -246,11 +247,7 @@
         "gitignore"
         "kubectl"
         "fzf"
-        # "nix-zsh-completions"
       ];
-      # This might not be required as we can manage the theme
-      # without on-my-zsh
-      # theme = "powerlevel10k/powerlevel10k";
     };
 
     shellAliases = {
