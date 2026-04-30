@@ -16,7 +16,7 @@
   # You should not change this value, even if you update Home Manager. If you do
   # want to update the value, then make sure to first check the Home Manager
   # release notes.
-  home.stateVersion = "24.11"; # Please read the comment before changing.
+  home.stateVersion = "25.11"; # Please read the comment before changing.
 
   # The home.packages option allows you to install Nix packages into your
   # environment.
@@ -116,20 +116,6 @@
   };
   programs.git = {
     enable = true;
-    aliases = {
-      tags = "tag --sort=-creatordate";
-      aliases = "config --get-regexp alias";
-      co = "checkout";
-      coi = "!git branch | grep \"$1\" -m 1 | xargs git checkout";
-      br = "branch";
-      ci = "commit";
-      gl = "log --graph --pretty=format:\"%C(dim red)%h%Creset - %C(bold yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset\" --abbrev-commit";
-      gls = "log --pretty=oneline --abbrev-commit";
-      gfp = "push --force-with-lease";
-      fe = "!git fetch origin $1:$1";
-      fem = "fetch origin master:master";
-      gs = "status -s -b";
-    };
     ignores = [
       ".direnv"
       ".vscode"
@@ -138,9 +124,22 @@
       "ay.local.*"
     ];
 
-    userName = "arijoon";
-
-    extraConfig = {
+    settings = {
+      alias = {
+        tags = "tag --sort=-creatordate";
+        aliases = "config --get-regexp alias";
+        co = "checkout";
+        coi = "!git branch | grep \"$1\" -m 1 | xargs git checkout";
+        br = "branch";
+        ci = "commit";
+        gl = "log --graph --pretty=format:\"%C(dim red)%h%Creset - %C(bold yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset\" --abbrev-commit";
+        gls = "log --pretty=oneline --abbrev-commit";
+        gfp = "push --force-with-lease";
+        fe = "!git fetch origin $1:$1";
+        fem = "fetch origin master:master";
+        gs = "status -s -b";
+      };
+      user.name = "arijoon";
       core = {
         fscache = true;
         # Win machines are case insensitive

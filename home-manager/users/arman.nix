@@ -5,14 +5,17 @@
 
   programs.git = {
     signing = {
+      format = "openpgp";
       signByDefault = true;
       key = "10DD4601042012F6";
       # Use system one
       signer = "/usr/bin/gpg";
     };
 
-    userEmail = "arman.yaraee@deversifi.com";
-    userName = "arijoon";
+    settings.user = {
+      email = "arman.yaraee@deversifi.com";
+      name = "arijoon";
+    };
   };
 
   # Additional packages only on this machine
