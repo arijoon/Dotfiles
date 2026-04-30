@@ -76,7 +76,8 @@
       recursive = true;
     };
     # Only link starter config
-    ".gemini/settings.json".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home-manager/gemini/settings.json";
+    ".gemini/settings.json".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home-manager/gemini/settings.json";
     # ".config/alacritty/alacritty.yml".source = ./home-files/alacritty.yml;
     ".config/alacritty/alacritty.toml".source = ./home-files/alacritty.toml;
     ".config/zellij/config.kdl".source = ./home-files/zellij.kdl;
@@ -207,6 +208,9 @@
         # Load kubectl completions (move to local)
         # TODO remove this
         source ${./zsh/completions/kubectl.zsh}
+
+        # worktrunk shell integration (wt function wrapper + completions)
+        eval "$(${pkgs-latest.worktrunk}/bin/wt config shell init zsh)"
       '')
     ];
 
