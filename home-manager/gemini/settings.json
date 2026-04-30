@@ -5,9 +5,9 @@
   },
   "general": {
     "vimMode": true,
-    "disableAutoUpdate": true,
     "previewFeatures": true,
-    "preferredEditor": "code"
+    "preferredEditor": "code",
+    "enableAutoUpdate": false
   },
   "ui": {
     "theme": "SolarizedDarkNoPurple",
