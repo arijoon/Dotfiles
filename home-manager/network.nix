@@ -105,6 +105,9 @@ let
 
     quoted="$(printf '%q ' "$@")"
     quoted="''${quoted% }"
+    # Preserve PATH so apps inside the namespace can find home-manager binaries
+    # (vopono uses sudo which resets PATH via secure_path)
+    quoted="env PATH=$PATH ''${quoted}"
 
     vopono_args=(exec -i "$iface" --dns "$dns" "''${provider_args[@]}" "''${quoted}")
     [[ $keep -eq 1 ]] && vopono_args=(exec --keep-alive -i "$iface" --dns "$dns" "''${provider_args[@]}" "''${quoted}")
