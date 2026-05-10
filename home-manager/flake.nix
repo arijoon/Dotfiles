@@ -16,6 +16,9 @@
       url = "github:nix-community/nixGL";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    zmx = {
+      url = "github:neurosnap/zmx";
+    };
   };
 
   outputs =
@@ -26,6 +29,7 @@
       nix-src,
       home-manager,
       nixgl,
+      zmx,
       ...
     }:
     let
@@ -67,7 +71,12 @@
         inherit pkgs;
 
         extraSpecialArgs = {
-          inherit nixpkgs nixpkgs-latest pkgs-latest nixgl;
+          inherit
+            nixpkgs
+            nixpkgs-latest
+            pkgs-latest
+            nixgl
+            ;
           nix = nix.default;
         };
       };
@@ -86,8 +95,14 @@
         # Optionally use extraSpecialArgs
         # to pass through arguments to home.nix
         extraSpecialArgs = {
-          inherit nixpkgs nixpkgs-latest pkgs-latest nixgl;
+          inherit
+            nixpkgs
+            nixpkgs-latest
+            pkgs-latest
+            nixgl
+            ;
           nix = determinate-nix.default;
+          zmx = zmx.packages."${system}".default;
         };
       };
 

@@ -1,4 +1,11 @@
-{ config, pkgs, pkgs-latest, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  pkgs-latest,
+  zmx,
+  ...
+}:
 let
   inherit (builtins) readFile;
 in
@@ -17,28 +24,30 @@ in
   };
 
   # Additional packages only on this machine
-  home.packages = let 
-    scriptswithDeps = [
-      (pkgs.writeShellApplication {
-        name = "towebm";
-        text = readFile "${../scripts}/towebm";
-        runtimeInputs = [ pkgs.ffmpeg ];
-      })
-      (pkgs.writeShellApplication {
-        name = "towebmnoaudio";
-        text = readFile "${../scripts}/towebmnoaudio";
-        runtimeInputs = [ pkgs.ffmpeg ];
-      })
-    ];
-    latest = with pkgs-latest; [
-      btop
-      magic-wormhole
-      rclone
-      veracrypt
-      vscode
-    ];
-  in
-    with pkgs; [
+  home.packages =
+    let
+      scriptswithDeps = [
+        (pkgs.writeShellApplication {
+          name = "towebm";
+          text = readFile "${../scripts}/towebm";
+          runtimeInputs = [ pkgs.ffmpeg ];
+        })
+        (pkgs.writeShellApplication {
+          name = "towebmnoaudio";
+          text = readFile "${../scripts}/towebmnoaudio";
+          runtimeInputs = [ pkgs.ffmpeg ];
+        })
+      ];
+      latest = with pkgs-latest; [
+        btop
+        magic-wormhole
+        rclone
+        veracrypt
+        vscode
+      ];
+    in
+    with pkgs;
+    [
       duf
       keepassxc
       lazydocker
@@ -47,5 +56,14 @@ in
       ncdu
       termshark
       # zoxide
-  ] ++ scriptswithDeps ++ latest;
+    ]
+    ++ scriptswithDeps
+    ++ latest
+    ++ [ zmx ];
+
+  programs.zsh.initContent = lib.mkOrder 1000 ''
+    if command -v zmx &> /dev/null; then
+      eval "$(zmx completions zsh)"
+    fi
+  '';
 }
