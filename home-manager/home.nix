@@ -210,6 +210,7 @@
         source ${./zsh/completions/kubectl.zsh}
 
         # worktrunk shell integration (wt function wrapper + completions)
+        export WORKTRUNK_BIN="${pkgs-latest.worktrunk}/bin/wt"
         eval "$(${pkgs-latest.worktrunk}/bin/wt config shell init zsh)"
       '')
     ];
