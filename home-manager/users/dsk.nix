@@ -40,6 +40,10 @@ in
       ];
       latest = with pkgs-latest; [
         btop
+        (librewolf.override {
+          nativeMessagingHosts = [ keepassxc ];
+        })
+        keepassxc
         magic-wormhole
         rclone
         veracrypt
@@ -49,7 +53,6 @@ in
     with pkgs;
     [
       duf
-      keepassxc
       lazydocker
       lshw
       mtr
