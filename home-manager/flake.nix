@@ -54,6 +54,10 @@
         ./sandbox.nix
         ./network.nix
       ];
+
+      # On NixOS, GL works natively — drop nixGL (kitty.nix's
+      # `config.lib.nixGL.wrap` falls back to an identity wrapper).
+      commonModsNixOS = builtins.filter (m: m != ./nixgl.nix) commonMods;
     in
     {
       homeConfigurations."arman" = home-manager.lib.homeManagerConfiguration {
@@ -69,6 +73,26 @@
         # Optionally use extraSpecialArgs
         # to pass through arguments to home.nix
         inherit pkgs;
+
+        extraSpecialArgs = {
+          inherit
+            nixpkgs
+            nixpkgs-latest
+            pkgs-latest
+            nixgl
+            ;
+          nix = nix.default;
+        };
+      };
+
+      # Laptop profile (NixOS). Switch independently of nixos-rebuild:
+      #   nix run .#home-manager -- switch --flake .#arlp
+      homeConfigurations."arlp" = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+
+        modules = commonModsNixOS ++ [
+          ./users/arlp.nix
+        ];
 
         extraSpecialArgs = {
           inherit
