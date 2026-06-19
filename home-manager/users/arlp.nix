@@ -48,6 +48,10 @@
     ++ (with pkgs-latest; [
       btop
       keepassxc
+      magic-wormhole
+      rclone
+      veracrypt
+      vscode
       (librewolf.override {
         nativeMessagingHosts = [ pkgs-latest.keepassxc ];
       })
