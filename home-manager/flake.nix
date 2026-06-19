@@ -19,6 +19,11 @@
     zmx = {
       url = "github:neurosnap/zmx";
     };
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
   };
 
   outputs =
@@ -30,6 +35,7 @@
       home-manager,
       nixgl,
       zmx,
+      plasma-manager,
       ...
     }:
     let
@@ -91,6 +97,7 @@
         inherit pkgs;
 
         modules = commonModsNixOS ++ [
+          plasma-manager.homeModules.plasma-manager
           ./users/arlp.nix
         ];
 
