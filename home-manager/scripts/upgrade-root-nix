@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Upgrade the multi-user nix-daemon (root's default profile) to the
+# flake-pinned upstream-nix. Run as your normal user — it sudoes the
+# privileged steps itself.
+set -euo pipefail
+
+if [[ $EUID -eq 0 ]]; then
+  echo "Run as your normal user, not root/sudo." >&2
+  exit 1
+fi
+
+profile="/nix/var/nix/profiles/default"
+nix="$profile/bin/nix"
+dotfiles="$HOME/.dotfiles/home-manager"
+flake="$dotfiles#upstream-nix"
+
+if sudo "$nix" profile list --profile "$profile" | grep -qi upstream-nix; then
+  sudo "$nix" profile upgrade --profile "$profile" upstream-nix
+else
+  sudo "$nix" profile remove --profile "$profile" nix 2>/dev/null || true
+  sudo "$nix" profile install --profile "$profile" "$flake"
+fi
+
+sudo systemctl daemon-reload
+sudo systemctl restart nix-daemon
+
+"$nix" store info --json | jq -r '"daemon now: " + .version'

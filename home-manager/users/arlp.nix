@@ -31,9 +31,8 @@
   # rofi (solarized) and flameshot are configured system-wide in the NixOS
   # config (modules/desktop.nix), not here.
 
-  # Declarative KDE Plasma config (plasma-manager). overrideConfig stays false
-  # (default), so this only sets what's listed here and leaves the rest of your
-  # Plasma settings (e.g. a manually-positioned panel) intact.
+  # Declaring `panels` makes plasma-manager own the panel: every switch wipes
+  # the appletsrc and rebuilds from here, so GUI panel tweaks won't persist.
   programs.plasma = {
     enable = true;
 
@@ -46,6 +45,52 @@
       key = "Alt+P";
       command = "rofi -show drun";
     };
+
+    panels = [
+      {
+        location = "top";
+        height = 44;
+        widgets = [
+          "org.kde.plasma.kickoff"
+          "org.kde.plasma.icontasks"
+          "org.kde.plasma.pager"
+          "org.kde.plasma.marginsseparator"
+          {
+            systemMonitor = {
+              title = "System";
+              showTitle = false;
+              displayStyle = "org.kde.ksysguard.barchart";
+              # If the disk bar is empty, the root mount's id differs: check the
+              # widget's sensor browser under Disks (`disk/<name>/usedPercent`).
+              sensors = [
+                {
+                  name = "cpu/all/usage";
+                  label = "CPU";
+                  color = "243,139,168"; # red
+                }
+                {
+                  name = "memory/physical/usedPercent";
+                  label = "RAM";
+                  color = "166,227,161"; # green
+                }
+                {
+                  name = "disk/root/usedPercent";
+                  label = "Disk";
+                  color = "137,180,250"; # blue
+                }
+              ];
+              range = {
+                from = 0;
+                to = 100;
+              };
+            };
+          }
+          "org.kde.plasma.systemtray"
+          "org.kde.plasma.digitalclock"
+          "org.kde.plasma.showdesktop"
+        ];
+      }
+    ];
   };
 
   # Laptop apps (extend as you like — see users/dsk.nix for ideas).
