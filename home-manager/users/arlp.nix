@@ -10,12 +10,22 @@
   home.homeDirectory = "/home/arlp";
 
   programs.git = {
-    # No signing key yet — generate one and fill this in if you want signed
-    # commits (mirror users/dsk.nix's `signing` block).
+    signing = {
+      format = "openpgp";
+      signByDefault = true;
+      key = "E50B51A6FEFB447247695A6C42836F5AEC17E1E5";
+    };
+
     settings.user = {
-      email = "ayaraee1@gmail.com";
+      email = "arman.yaraee@rhino.fi";
       name = "arijoon";
     };
+  };
+
+  programs.gpg.enable = true;
+  services.gpg-agent = {
+    enable = true;
+    pinentry.package = pkgs.pinentry-qt;
   };
 
   # rofi (solarized) and flameshot are configured system-wide in the NixOS

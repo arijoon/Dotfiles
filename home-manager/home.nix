@@ -48,6 +48,7 @@
     nurl
     ripgrep
     tmux
+    xclip
     zellij
     nixfmt-rfc-style
     nix
@@ -291,6 +292,7 @@
     extraPackages = with pkgs; [
       lua-language-server
       nil
+      gcc
     ];
   };
 
