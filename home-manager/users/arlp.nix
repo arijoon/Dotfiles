@@ -59,30 +59,50 @@
             systemMonitor = {
               title = "System";
               showTitle = false;
-              displayStyle = "org.kde.ksysguard.barchart";
-              # If the disk bar is empty, the root mount's id differs: check the
-              # widget's sensor browser under Disks (`disk/<name>/usedPercent`).
+              # Text Only face: compact numbers (CPU %, RAM used/total GiB, Disk
+              # used GiB) instead of cramped bars.
+              displayStyle = "org.kde.ksysguard.textonly";
+              # Labels are Nerd Font glyphs (via fromJSON so the source stays ASCII):
+              #   uf4bc oct-cpu (chip) · uefc5 fa-memory (RAM stick) · uf0a0 fa-hdd
+              # They fall back to "Symbols Nerd Font Mono"; stick to BMP PUA
+              # (U+E000–U+F8FF) — Material-Design icons (U+F0000+) don't render here.
+              # The compact (panel) view only renders highPrioritySensorIds, so RAM
+              # total is added as its own `memory/physical/total` sensor with a "/"
+              # label; its swatch colour is the panel background (32,35,38) so it
+              # disappears and RAM reads as one group: " 4.9 GiB / 62.5 GiB".
+              # Sensor ids come from ksystemstats; list them with:
+              #   busctl --user call org.kde.ksystemstats1 /org/kde/ksystemstats1 \
+              #     org.kde.ksystemstats1 allSensors
+              # `disk/all` aggregates all mounts (root has no stable `disk/root` id
+              # here — it's a btrfs/cryptroot UUID).
               sensors = [
                 {
                   name = "cpu/all/usage";
-                  label = "CPU";
+                  label = builtins.fromJSON ''"\uf4bc"'';
                   color = "243,139,168"; # red
                 }
                 {
-                  name = "memory/physical/usedPercent";
-                  label = "RAM";
+                  name = "memory/physical/used";
+                  label = builtins.fromJSON ''"\uefc5"'';
                   color = "166,227,161"; # green
                 }
                 {
-                  name = "disk/root/usedPercent";
-                  label = "Disk";
+                  name = "memory/physical/total";
+                  label = "/";
+                  color = "32,35,38"; # panel background \u2192 swatch hidden
+                }
+                {
+                  name = "disk/all/used";
+                  label = builtins.fromJSON ''"\uf0a0"'';
                   color = "137,180,250"; # blue
                 }
               ];
-              range = {
-                from = 0;
-                to = 100;
-              };
+              # plasma-manager's `sensors` helper double-escapes the id list
+              # (`toEscapedList` adds `\"` then writeConfig JSON-encodes it again),
+              # so the widget stores `[\"cpu/all/usage\",...]` — invalid JSON and
+              # nothing renders. `settings` is merged last, so override the key with
+              # a plain JSON string (toJSON turns it into the correct `["..."]`).
+              settings.Sensors.highPrioritySensorIds = ''["cpu/all/usage","memory/physical/used","memory/physical/total","disk/all/used"]'';
             };
           }
           "org.kde.plasma.systemtray"
