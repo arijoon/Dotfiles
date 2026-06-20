@@ -50,7 +50,7 @@
     tmux
     xclip
     zellij
-    nixfmt-rfc-style
+    nixfmt
     nix
     zip
     unzip
@@ -288,6 +288,9 @@
     # defaultEditor = true;
     viAlias = true;
     vimdiffAlias = true;
+    withRuby = true;
+    withPython3 = true;
+    sideloadInitLua = true;
     # extraConfig = ":luafile ${config.home.homeDirectory}/.config/nvim/init.lua";
     extraPackages = with pkgs; [
       lua-language-server
@@ -298,10 +301,10 @@
 
   nix.package = nix;
   nix.extraOptions = ''
-    experimental-features = nix-command flakes 
     nix-path = nixpkgs=flake:nixpkgs nixpkgs-latest=flake:nixpkgs-latest
-    max-jobs = 8
     !include ./rhino.conf
+    experimental-features = nix-command flakes
+    max-jobs = 8
   '';
   nix.registry = {
     nixpkgs.flake = nixpkgs;

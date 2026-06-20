@@ -3,13 +3,13 @@
 
   inputs = {
     # Specify the source of Home Manager and Nixpkgs.
-    nixpkgs.url = "github:nixos/nixpkgs/25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/26.05";
     # Use this for users without determinate nix
-    nix-src.url = "https://flakehub.com/f/NixOS/nix/=2.30.2";
+    nix-src.url = "https://flakehub.com/f/NixOS/nix/=2.34.7";
     determinate-nix-src.url = "https://flakehub.com/f/DeterminateSystems/nix-src/=3.12.0";
     nixpkgs-latest.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixgl = {
