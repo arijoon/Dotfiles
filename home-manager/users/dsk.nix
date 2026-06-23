@@ -13,6 +13,8 @@ in
   home.username = "dsk";
   home.homeDirectory = "/home/dsk";
 
+  armanConfig.mpv.enable = true;
+
   programs.git = {
     signing = {
       format = "openpgp";

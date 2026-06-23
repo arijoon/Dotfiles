@@ -59,6 +59,7 @@
         ./common-scripts.nix
         ./sandbox.nix
         ./network.nix
+        ./mpv.nix
       ];
 
       # On NixOS, GL works natively — drop nixGL (kitty.nix's

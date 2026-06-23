@@ -15,6 +15,7 @@ Shared by both profiles (`commonMods` in `flake.nix`):
 | `sandbox.nix`         | `sandbox-run` (landrun wrapper) and `sandbox-ai` preset for AI CLIs       |
 | `common-scripts.nix`  | `update-ai` — reinstalls a CLI from `numtide/llm-agents.nix`              |
 | `nixgl.nix`           | nixGL wrappers for non-NixOS GL (mesa default, nvidiaPrime offload)       |
+| `mpv.nix`             | mpv player (option `armanConfig.mpv.enable`, default `false`; on for `dsk`). Latest mpv + nixGL, re-wrapped so ffmpeg + subliminal are on mpv's PATH only (not the profile) and `~/.config/mpv/secrets.env` is sourced for script creds. Config from `home-files/mpv/` |
 
 Profile-only modules (loaded only by `arman`):
 
@@ -33,7 +34,8 @@ Per-user (`users/<name>.nix`):
 ## Files & assets
 
 - `home-files/` — static config files referenced by `home.file` in `home.nix` /
-  `kitty.nix` (alacritty, kitty, zellij).
+  `kitty.nix` (alacritty, kitty, zellij). `home-files/mpv/` holds the mpv config
+  (`mpv.conf`, `input.conf`, `script-opts/`, lua `scripts/`), symlinked by `mpv.nix`.
 - `nvim-kickstart/` — Neovim config. Linked into `~/.config/nvim/` as an
   out-of-store symlink so edits don't require a rebuild.
 - `gemini/settings.json` — Gemini CLI config, also out-of-store symlinked.
