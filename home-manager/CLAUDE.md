@@ -62,3 +62,5 @@ and `nix` to all modules.
 - `home.stateVersion = "25.11"` — leave alone unless intentionally migrating.
 - `KITTY.md` is a cheatsheet for the kitty bindings in `home-files/kitty.conf`.
 - `pending.todo` is a personal TODO list.
+- Login shell must be the nix zsh (`~/.nix-profile/bin/zsh` via `chsh`) so its
+  dynamic deps (nix glibc) match nix-built modules like fzf-tab's `fzftab.so`.
