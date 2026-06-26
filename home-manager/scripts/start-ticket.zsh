@@ -112,7 +112,9 @@ start-ticket() {
   wt switch --create "$branch" --base "$base" || return $?
 
   # 3. Title the kitty tab (same effect as Ctrl+Shift+, -> set_tab_title).
-  : "${kitty_title:=${ticket} ${suffix}}"
+  # Keep tabs short: full ticket id, but clamp the suffix to 8 chars so the
+  # tab stays readable. The branch above still uses the full slug.
+  : "${kitty_title:=${ticket}/${suffix[1,8]}}"
   if [[ -n "$KITTY_WINDOW_ID" ]] && command -v kitty >/dev/null 2>&1; then
     kitty @ set-tab-title "$kitty_title" \
       || print -u2 "start-ticket: could not set kitty tab title"
