@@ -30,6 +30,21 @@ in
     settings.user.email = "arman@yaraee.net";
   };
 
+  programs.gpg.enable = true;
+  services.gpg-agent = {
+    enable = true;
+    pinentry.package = pkgs.pinentry-qt;
+    defaultCacheTtl = 14400;
+    maxCacheTtl = 28800;
+  };
+
+  services.ssh-agent.enable = true;
+  programs.ssh = {
+    enable = true;
+    enableDefaultConfig = false;
+    settings."*".AddKeysToAgent = "yes";
+  };
+
   # Additional packages only on this machine
   home.packages =
     let
