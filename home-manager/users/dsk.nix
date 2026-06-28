@@ -68,6 +68,7 @@ in
         keepassxc
         magic-wormhole
         rclone
+        samba
         veracrypt
         vscode
       ];
