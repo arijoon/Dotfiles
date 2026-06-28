@@ -30,6 +30,9 @@ in
       })
     ];
 
-    home.file.".config/kitty/kitty.conf".source = ./home-files/kitty.conf;
+    # Out-of-store symlink, not a /nix/store symlink: kitty's __watch_conf__
+    # kitten recursively watches the directory holding the resolved config file.
+    home.file.".config/kitty/kitty.conf".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home-manager/home-files/kitty.conf";
   };
 }

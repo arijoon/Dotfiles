@@ -15,6 +15,11 @@ in
 
   armanConfig.mpv.enable = true;
 
+  services.flameshot = {
+    enable = true;
+    package = pkgs-latest.flameshot;
+  };
+
   programs.git = {
     signing = {
       format = "openpgp";
