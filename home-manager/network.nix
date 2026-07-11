@@ -34,6 +34,7 @@ let
       -i, --interface <name>   Override host interface (default: auto-detected).
       -D, --dns <ip>           Override bootstrap DNS (default: 1.1.1.1).
       -c, --config <path>      Use a custom .ovpn instead of the PIA provider.
+      -w, --wireguard          Use WireGuard instead of OpenVPN (default: OpenVPN).
       -k, --keep-alive         Don't tear down namespace after command exits.
           --check-xtables      Abort if /run/xtables.lock is held by another
                                process (dockerd, libvirtd, etc.). Off by default.
@@ -44,6 +45,7 @@ let
       with-vpn 'us-*' -- firefox
       with-vpn -c ~/secrets/work.ovpn -- bash
       with-vpn -i wlan0 japan -- speedtest-cli
+      with-vpn -w brazil -- firefox            # WireGuard instead of OpenVPN
     EOF
     }
 
@@ -52,12 +54,14 @@ let
     keep=0
     check_xtables=0
     custom_cfg=""
+    protocol="openvpn"
 
     while [[ $# -gt 0 ]]; do
       case "$1" in
         -i|--interface) iface="$2"; shift 2 ;;
         -D|--dns)       dns="$2"; shift 2 ;;
         -c|--config)    custom_cfg="$2"; shift 2 ;;
+        -w|--wireguard) protocol="wireguard"; shift ;;
         -k|--keep-alive) keep=1; shift ;;
         --check-xtables) check_xtables=1; shift ;;
         -h|--help)      usage; exit 0 ;;
@@ -69,7 +73,7 @@ let
 
     if [[ -n "$custom_cfg" ]]; then
       [[ -f "$custom_cfg" ]] || { echo "with-vpn: config not found: $custom_cfg" >&2; exit 2; }
-      provider_args=(--custom "$custom_cfg" --protocol openvpn)
+      provider_args=(--custom "$custom_cfg" --protocol "$protocol")
     else
       # First positional is the server glob; if it looks like a command (path-y
       # or matches a binary on $PATH) or is missing, default to switzerland.
@@ -79,7 +83,7 @@ let
           server="$1"; shift
         fi
       fi
-      provider_args=(--provider PrivateInternetAccess --protocol openvpn --server "''${server}")
+      provider_args=(--provider PrivateInternetAccess --protocol "$protocol" --server "''${server}")
     fi
 
     [[ "''${1:-}" == "--" ]] && shift
