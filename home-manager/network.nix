@@ -127,6 +127,7 @@ in
 {
   home.packages = [
     pkgs-latest.vopono
+    pkgs.wireguard-tools
     with-vpn
   ];
 }
