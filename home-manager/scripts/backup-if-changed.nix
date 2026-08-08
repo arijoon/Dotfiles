@@ -14,6 +14,8 @@ pkgs.writeShellApplication {
     }
 
     LIMIT=20
+    ATTEMPTS=3
+    RETRY_DELAY=5
     positional=()
 
     while [ "$#" -gt 0 ]; do
@@ -77,13 +79,17 @@ pkgs.writeShellApplication {
 
     ${coreutils}/mkdir -p "$DEST"
 
+    tree_hash() {
+      ${findutils}/find "$1" -type f -print0 |
+        ${coreutils}/sort -z |
+        ${findutils}/xargs -0 -r ${coreutils}/sha256sum |
+        ${coreutils}/sha256sum |
+        ${coreutils}/cut -d' ' -f1
+    }
+
     name=$(${coreutils}/basename "$SRC")
     state="$DEST/.$name.last-hash"
-    hash=$(${findutils}/find "$SRC" -type f -print0 |
-      ${coreutils}/sort -z |
-      ${findutils}/xargs -0 -r ${coreutils}/sha256sum |
-      ${coreutils}/sha256sum |
-      ${coreutils}/cut -d' ' -f1)
+    hash=$(tree_hash "$SRC")
 
     if [ -f "$state" ] && [ "$(${coreutils}/cat "$state")" = "$hash" ]; then
       exit 0
@@ -98,7 +104,27 @@ pkgs.writeShellApplication {
     done
     trap '${coreutils}/rm -f "$archive.tmp"' EXIT
 
-    ${tar} --use-compress-program=${gzip} -cf "$archive.tmp" -C "$(${coreutils}/dirname "$SRC")" "$name"
+    attempt=1
+
+    while true; do
+      ${tar} --use-compress-program=${gzip} -cf "$archive.tmp" -C "$(${coreutils}/dirname "$SRC")" "$name"
+      after=$(tree_hash "$SRC")
+
+      if [ "$after" = "$hash" ]; then
+        break
+      fi
+
+      if [ "$attempt" -ge "$ATTEMPTS" ]; then
+        echo "backup-if-changed: $stamp source still changing after $ATTEMPTS attempts, gave up (will retry next run): $SRC" >&2
+        exit 3
+      fi
+
+      echo "backup-if-changed: $stamp source changed while archiving, retrying ($attempt/$ATTEMPTS): $SRC" >&2
+      hash="$after"
+      attempt=$((attempt + 1))
+      ${coreutils}/sleep "$RETRY_DELAY"
+    done
+
     ${coreutils}/mv "$archive.tmp" "$archive"
     printf '%s\n' "$hash" >"$state"
 
