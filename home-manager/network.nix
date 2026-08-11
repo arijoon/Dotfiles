@@ -6,6 +6,7 @@ let
   cat = "${pkgs.coreutils}/bin/cat";
   fuser = "${pkgs.psmisc}/bin/fuser";
   ps = "${pkgs.procps}/bin/ps";
+  grep = "${pkgs.gnugrep}/bin/grep";
 
   with-vpn = pkgs.writeShellScriptBin "with-vpn" ''
     # with-vpn — run a command through a VPN namespace via vopono.
@@ -40,7 +41,23 @@ let
       -k, --keep-alive         Don't tear down namespace after command exits.
           --check-xtables      Abort if /run/xtables.lock is held by another
                                process (dockerd, libvirtd, etc.). Off by default.
+          --no-tune            Don't append MTU/replay tuning to the provider's
+                               .ovpn files (see "OpenVPN tuning" below).
       -h, --help               Show this help.
+
+    OpenVPN tuning (on by default, provider configs only):
+      PIA's shipped .ovpn files leave tun-mtu at 1500 and replay-window at the
+      64-packet default. On a path with MTU 1480 that blackholes full-size
+      packets (openvpn logs "EMSGSIZE Path-MTU=1480"), and high-throughput
+      streams overrun the replay window ("AEAD Decrypt error: bad packet ID").
+      Both silently drop packets, which truncates HTTP range responses and
+      breaks video playback in Firefox (NS_ERROR_DOM_MEDIA_RANGE_ERR).
+
+      So before exec, any provider .ovpn missing the marker gets appended:
+      tun-mtu 1400, mssfix 1360, replay-window 2048 30, mute-replay-warnings.
+      Idempotent, and re-applied after a 'vopono sync' rewrites the configs.
+      Custom configs passed with -c are never touched. WireGuard (-w) doesn't
+      need this: vopono generates those with MTU 1280 already.
 
     Examples:
       with-vpn -- curl -s ifconfig.me            # defaults to switzerland
@@ -58,7 +75,25 @@ let
     check_xtables=0
     custom_cfg=""
     protocol="openvpn"
+    tune=1
     forward_args=()
+
+    tune_openvpn_configs() {
+      local dir="$1" f
+      [[ -d "$dir" ]] || return 0
+      for f in "$dir"/*.ovpn; do
+        [[ -f "$f" ]] || continue
+        ${grep} -qx '# with-vpn-tuned' "$f" && continue
+        ${cat} >> "$f" <<'TUNEEOF'
+
+    # with-vpn-tuned
+    tun-mtu 1400
+    mssfix 1360
+    replay-window 2048 30
+    mute-replay-warnings
+    TUNEEOF
+      done
+    }
 
     while [[ $# -gt 0 ]]; do
       case "$1" in
@@ -69,6 +104,7 @@ let
         -w|--wireguard) protocol="wireguard"; shift ;;
         -k|--keep-alive) keep=1; shift ;;
         --check-xtables) check_xtables=1; shift ;;
+        --no-tune)      tune=0; shift ;;
         -h|--help)      usage; exit 0 ;;
         --) shift; break ;;
         -*) echo "with-vpn: unknown option: $1" >&2; exit 2 ;;
@@ -89,6 +125,9 @@ let
         fi
       fi
       provider_args=(--provider PrivateInternetAccess --protocol "$protocol" --server "''${server}")
+      if [[ $tune -eq 1 && "$protocol" == "openvpn" ]]; then
+        tune_openvpn_configs "''${XDG_CONFIG_HOME:-$HOME/.config}/vopono/pia/openvpn"
+      fi
     fi
 
     [[ "''${1:-}" == "--" ]] && shift
