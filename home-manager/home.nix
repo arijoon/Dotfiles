@@ -210,6 +210,13 @@
         # TODO remove this
         source ${./zsh/completions/kubectl.zsh}
 
+        _nix_compfile=(''${^fpath}/_nix(N))
+        if (( $#_nix_compfile )); then
+          autoload -Uz _nix
+          compdef _nix nix
+        fi
+        unset _nix_compfile
+
         # worktrunk shell integration (wt function wrapper + completions)
         export WORKTRUNK_BIN="${pkgs-latest.worktrunk}/bin/wt"
         eval "$(${pkgs-latest.worktrunk}/bin/wt config shell init zsh)"
