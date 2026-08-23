@@ -14,6 +14,7 @@ in
   home.homeDirectory = "/home/dsk";
 
   armanConfig.mpv.enable = true;
+  armanConfig.hostNvidia.enable = true;
 
   services.flameshot = {
     enable = true;

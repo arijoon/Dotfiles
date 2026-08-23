@@ -54,7 +54,7 @@
       commonMods = [
         ./home.nix
         ./shell.nix
-        ./nixgl.nix
+        ./gpu.nix
         ./kitty.nix
         ./common-scripts.nix
         ./sandbox.nix
@@ -62,9 +62,9 @@
         ./mpv.nix
       ];
 
-      # On NixOS, GL works natively — drop nixGL (kitty.nix's
-      # `config.lib.nixGL.wrap` falls back to an identity wrapper).
-      commonModsNixOS = builtins.filter (m: m != ./nixgl.nix) commonMods;
+      # On NixOS, GL works natively — drop the generic-Linux GPU setup
+      # (kitty.nix's `config.lib.nixGL.wrap` falls back to an identity wrapper).
+      commonModsNixOS = builtins.filter (m: m != ./gpu.nix) commonMods;
     in
     {
       homeConfigurations."arman" = home-manager.lib.homeManagerConfiguration {
