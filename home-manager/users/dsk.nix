@@ -63,11 +63,9 @@ in
       ];
       latest = with pkgs-latest; [
         btop
-        (config.lib.nixGL.wrap (
-          librewolf.override {
-            nativeMessagingHosts = [ keepassxc ];
-          }
-        ))
+        (librewolf.override {
+          nativeMessagingHosts = [ keepassxc ];
+        })
         keepassxc
         magic-wormhole
         rclone

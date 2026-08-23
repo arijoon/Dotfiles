@@ -13,10 +13,24 @@ let
     name = "nix-host-gpu-mesa";
     paths = with pkgs; [
       mesa
+      libgbm
       libvdpau-va-gl
       nvidia-vaapi-driver
     ];
   };
+
+  depLibs = lib.makeLibraryPath (
+    with pkgs;
+    [
+      libX11
+      libXext
+      libxcb
+      libdrm
+      libgbm
+      wayland
+      openssl
+    ]
+  );
 
   builder = pkgs.writeShellApplication {
     name = "nix-host-gpu-build";
@@ -29,35 +43,48 @@ let
     text = ''
       state="${stateDir}"
       mesa="${mesaEnv}"
-      nvdir=""
+      deps="${depLibs}"
 
+      list_nvidia_libs() {
+        local l
+        for l in /usr/lib/libcuda.so* /usr/lib/libcudadebugger.so* \
+                 /usr/lib/libnvcuvid.so* /usr/lib/libnvoptix.so* \
+                 /usr/lib/libnvidia-*.so* /usr/lib/libGLX_nvidia.so* \
+                 /usr/lib/libEGL_nvidia.so* /usr/lib/vdpau/libvdpau_nvidia.so*; do
+          [ -e "$l" ] && printf '%s\n' "$l"
+        done
+        return 0
+      }
+
+      install_lib() {
+        local src="$1" dst="$2" target
+        if [ -L "$src" ]; then
+          target="$(readlink "$src")"
+          ln -sfn "''${target##*/}" "$dst"
+        else
+          cp -f "$src" "$dst"
+          chmod u+w "$dst"
+          patchelf --set-rpath "/run/opengl-driver/lib:$deps" "$dst" 2>/dev/null || true
+        fi
+      }
+
+      nvdir=""
       if [ -e /usr/lib/libcuda.so.1 ]; then
         real="$(readlink -f /usr/lib/libcuda.so.1)"
         ver="''${real##*/libcuda.so.}"
-        nvdir="$state/nvidia-$ver"
+        sig="$(list_nvidia_libs | xargs -r stat -Lc '%n %s %Y' | sha256sum | cut -c1-12)"
+        nvdir="$state/nvidia-$ver-$sig"
 
         if [ ! -e "$nvdir/.stamp" ]; then
           rm -rf "$nvdir.tmp"
-          mkdir -p "$nvdir.tmp/lib"
+          mkdir -p "$nvdir.tmp/lib/vdpau"
 
-          for l in /usr/lib/libcuda.so* /usr/lib/libnvcuvid.so* \
-                   /usr/lib/libnvidia-*.so* /usr/lib/libGLX_nvidia.so* \
-                   /usr/lib/libEGL_nvidia.so*; do
-            [ -e "$l" ] || continue
-            b="''${l##*/}"
-            if [ -L "$l" ]; then
-              t="$(readlink "$l")"
-              ln -sfn "''${t##*/}" "$nvdir.tmp/lib/$b"
-            else
-              cp -f "$l" "$nvdir.tmp/lib/$b"
-              chmod u+w "$nvdir.tmp/lib/$b"
-            fi
-          done
-
-          for f in "$nvdir.tmp"/lib/*; do
-            [ -L "$f" ] && continue
-            patchelf --set-rpath /run/opengl-driver/lib "$f" 2>/dev/null || true
-          done
+          while read -r l; do
+            case "$l" in
+              /usr/lib/vdpau/*) install_lib "$l" "$nvdir.tmp/lib/vdpau/''${l##*/}" ;;
+              *) install_lib "$l" "$nvdir.tmp/lib/''${l##*/}" ;;
+            esac
+          done < <(list_nvidia_libs)
 
           touch "$nvdir.tmp/.stamp"
           rm -rf "$nvdir"
@@ -65,46 +92,47 @@ let
         fi
       fi
 
-      merged="$state/merged"
-      rm -rf "$merged.tmp"
-      mkdir -p "$merged.tmp"
-      cp -rsL "$mesa"/. "$merged.tmp"/
-      chmod -R u+w "$merged.tmp"
+      new="$(mktemp -d "$state/merged.XXXXXX")"
+      chmod 755 "$new"
+      cp -rsL "$mesa"/. "$new"/
+      chmod -R u+w "$new"
 
       if [ -n "$nvdir" ] && [ -e "$nvdir/.stamp" ]; then
-        mkdir -p "$merged.tmp/lib" \
-                 "$merged.tmp/share/glvnd/egl_vendor.d" \
-                 "$merged.tmp/share/vulkan/icd.d"
+        mkdir -p "$new/lib/vdpau" \
+                 "$new/share/glvnd/egl_vendor.d" \
+                 "$new/share/vulkan/icd.d"
 
         for f in "$nvdir"/lib/*; do
-          ln -sfn "$f" "$merged.tmp/lib/''${f##*/}"
+          [ -d "$f" ] && continue
+          ln -sfn "$f" "$new/lib/''${f##*/}"
+        done
+
+        for f in "$nvdir"/lib/vdpau/*; do
+          [ -e "$f" ] || continue
+          ln -sfn "$f" "$new/lib/vdpau/''${f##*/}"
         done
 
         printf '{"file_format_version":"1.0.0","ICD":{"library_path":"/run/opengl-driver/lib/libEGL_nvidia.so.0"}}\n' \
-          > "$merged.tmp/share/glvnd/egl_vendor.d/10_nvidia.json"
+          > "$new/share/glvnd/egl_vendor.d/10_nvidia.json"
 
         if [ -e /usr/share/vulkan/icd.d/nvidia_icd.json ]; then
           api="$(sed -n 's/.*"api_version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
                  /usr/share/vulkan/icd.d/nvidia_icd.json | head -1)"
-          printf '{"file_format_version":"1.0.0","ICD":{"library_path":"/run/opengl-driver/lib/libGLX_nvidia.so.0","api_version":"%s"}}\n' \
-            "''${api:-1.4.0}" > "$merged.tmp/share/vulkan/icd.d/nvidia_icd.json"
-        fi
-
-        if [ -d /usr/share/egl/egl_external_platform.d ]; then
-          mkdir -p "$merged.tmp/share/egl/egl_external_platform.d"
-          for j in /usr/share/egl/egl_external_platform.d/*.json; do
-            [ -e "$j" ] || continue
-            sed 's|"library_path"[[:space:]]*:[[:space:]]*"\([^"/]*\)"|"library_path": "/run/opengl-driver/lib/\1"|' \
-              "$j" > "$merged.tmp/share/egl/egl_external_platform.d/''${j##*/}"
-          done
+          if [ -n "$api" ]; then
+            printf '{"file_format_version":"1.0.0","ICD":{"library_path":"/run/opengl-driver/lib/libGLX_nvidia.so.0","api_version":"%s"}}\n' \
+              "$api" > "$new/share/vulkan/icd.d/nvidia_icd.json"
+          else
+            printf '{"file_format_version":"1.0.0","ICD":{"library_path":"/run/opengl-driver/lib/libGLX_nvidia.so.0"}}\n' \
+              > "$new/share/vulkan/icd.d/nvidia_icd.json"
+          fi
         fi
       fi
 
-      rm -rf "$merged"
-      mv -T "$merged.tmp" "$merged"
-
-      ln -sfn "$merged" /run/opengl-driver.tmp
+      ln -sfn "$new" /run/opengl-driver.tmp
       mv -T /run/opengl-driver.tmp /run/opengl-driver
+
+      find "$state" -maxdepth 1 \( -name 'merged.*' -o -name merged \) \
+        ! -name "''${new##*/}" -exec rm -rf {} +
 
       if [ -n "$nvdir" ]; then
         find "$state" -maxdepth 1 -name 'nvidia-*' ! -name "''${nvdir##*/}" -exec rm -rf {} +

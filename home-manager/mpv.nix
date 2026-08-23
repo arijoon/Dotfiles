@@ -13,8 +13,7 @@ let
   # to download subtitles.
   pythonEnv = pkgs.python3.withPackages (ps: [ ps.subliminal ]);
 
-  # mpv from nixpkgs-latest, nixGL-wrapped so GL works on non-NixOS (Manjaro).
-  mpvGL = config.lib.nixGL.wrap pkgs-latest.mpv;
+  mpvGL = pkgs-latest.mpv;
 
   # Re-wrap mpv so its script dependencies are scoped to the mpv process
   # instead of polluting the user profile:
