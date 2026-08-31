@@ -47,10 +47,12 @@ Per-user (`users/<name>.nix`):
 
 ## Inputs (flake)
 
-- `nixpkgs` → release 25.11
-- `nixpkgs-latest` → nixpkgs-unstable (exposed as `pkgs-latest`)
-- `home-manager` → release 25.11
-- `nix-src` (FlakeHub Nix 2.30.2) — used for `arman`
+- `nixpkgs` → release 26.05
+- `nixpkgs-latest` → nixpkgs-unstable (exposed as `pkgs-latest`). The url tracks
+  the branch but the lock is held at a hand-vetted channel release — bump it via
+  the `nixpkgs-latest-bump` skill, not `nix flake update`.
+- `home-manager` → release 26.05
+- `nix-src` (FlakeHub Nix 2.34.7) — used for `arman`
 - `determinate-nix-src` (FlakeHub 3.12.0) — used for `dsk`
 - `nixgl`
 

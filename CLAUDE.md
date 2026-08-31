@@ -36,8 +36,10 @@ suggest edits to these unless the user asks specifically.**
 ## Conventions
 
 - Nix formatter: `nixfmt-rfc-style` (run `nixfmt` on edited files).
-- nixpkgs is pinned to release `25.11`; `nixpkgs-latest` is unstable, used for
+- nixpkgs is pinned to release `26.05`; `nixpkgs-latest` is unstable, used for
   selected packages (`worktrunk`, `landrun`, `kitty`, `vscode`, `btop`, ...).
+  Bump `nixpkgs-latest` with the `nixpkgs-latest-bump` skill, never with a blind
+  `nix flake update`.
 - Custom module options live under `armanConfig.*`, `editors.*`, or
   `services.armanwsl`.
 - Shell scripts go in `home-manager/scripts/` and are wrapped via

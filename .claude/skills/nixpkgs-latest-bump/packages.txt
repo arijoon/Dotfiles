@@ -1,0 +1,14 @@
+btop
+flameshot
+keepassxc
+kitty
+landrun
+librewolf
+magic-wormhole
+mpv
+rclone
+samba
+veracrypt
+vopono
+vscode
+worktrunk
