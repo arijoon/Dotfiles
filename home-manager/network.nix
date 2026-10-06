@@ -37,6 +37,8 @@ let
       -c, --config <path>      Use a custom .ovpn instead of the PIA provider.
       -f, --forward <port>     Forward a port from the namespace to the host.
                                Repeat for multiple ports.
+      -H, --allow-host-access  Let the command reach services on the host, as
+                               vopono.host or $VOPONO_HOST_IP.
       -w, --wireguard          Use WireGuard instead of OpenVPN (default: OpenVPN).
       -k, --keep-alive         Don't tear down namespace after command exits.
           --check-xtables      Abort if /run/xtables.lock is held by another
@@ -66,6 +68,7 @@ let
       with-vpn -i wlan0 japan -- speedtest-cli
       with-vpn -w brazil -- firefox            # WireGuard instead of OpenVPN
       with-vpn -f 8080 -f 9090 -- some-server  # forward ports 8080 and 9090
+      with-vpn -H -- curl http://vopono.host:5001  # reach a host service
     EOF
     }
 
@@ -77,6 +80,7 @@ let
     protocol="openvpn"
     tune=1
     forward_args=()
+    host_args=()
 
     tune_openvpn_configs() {
       local dir="$1" f
@@ -101,6 +105,7 @@ let
         -D|--dns)       dns="$2"; shift 2 ;;
         -c|--config)    custom_cfg="$2"; shift 2 ;;
         -f|--forward)   forward_args+=(--forward "$2"); shift 2 ;;
+        -H|--allow-host-access) host_args=(--allow-host-access); shift ;;
         -w|--wireguard) protocol="wireguard"; shift ;;
         -k|--keep-alive) keep=1; shift ;;
         --check-xtables) check_xtables=1; shift ;;
@@ -157,8 +162,8 @@ let
     # (vopono uses sudo which resets PATH via secure_path)
     quoted="env PATH=$PATH ''${quoted}"
 
-    vopono_args=(exec -i "$iface" --dns "$dns" "''${forward_args[@]}" "''${provider_args[@]}" "''${quoted}")
-    [[ $keep -eq 1 ]] && vopono_args=(exec --keep-alive -i "$iface" --dns "$dns" "''${forward_args[@]}" "''${provider_args[@]}" "''${quoted}")
+    vopono_args=(exec -i "$iface" --dns "$dns" "''${forward_args[@]}" "''${host_args[@]}" "''${provider_args[@]}" "''${quoted}")
+    [[ $keep -eq 1 ]] && vopono_args=(exec --keep-alive -i "$iface" --dns "$dns" "''${forward_args[@]}" "''${host_args[@]}" "''${provider_args[@]}" "''${quoted}")
 
     exec ${vopono} "''${vopono_args[@]}"
   '';
