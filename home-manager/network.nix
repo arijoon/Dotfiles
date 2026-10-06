@@ -7,6 +7,26 @@ let
   fuser = "${pkgs.psmisc}/bin/fuser";
   ps = "${pkgs.procps}/bin/ps";
   grep = "${pkgs.gnugrep}/bin/grep";
+  sleep = "${pkgs.coreutils}/bin/sleep";
+  mktemp = "${pkgs.coreutils}/bin/mktemp";
+  rm = "${pkgs.coreutils}/bin/rm";
+  ss = "${pkgs.iproute2}/bin/ss";
+  socat = "${pkgs.socat}/bin/socat";
+
+  host-handshake = pkgs.writeShellScript "with-vpn-host-handshake" ''
+    host_ip="''${VOPONO_HOST_IP:-}"
+    if [ -z "$host_ip" ]; then
+      host_ip="$(${pkgs.getent}/bin/getent hosts vopono.host | ${awk} '{ print $1; exit }')"
+    fi
+    printf '%s\n' "$host_ip" >"$1"
+    i=0
+    while [ ! -e "$2" ] && [ "$i" -lt 300 ]; do
+      ${sleep} 0.1
+      i=$((i + 1))
+    done
+    shift 2
+    exec "$@"
+  '';
 
   with-vpn = pkgs.writeShellScriptBin "with-vpn" ''
     # with-vpn — run a command through a VPN namespace via vopono.
@@ -39,6 +59,9 @@ let
                                Repeat for multiple ports.
       -H, --allow-host-access  Let the command reach services on the host, as
                                vopono.host or $VOPONO_HOST_IP.
+      -P, --host-port <port>   Relay a host service that listens on 127.0.0.1
+                               only to vopono.host:<port> while the command
+                               runs. Implies -H. Repeat for multiple ports.
       -w, --wireguard          Use WireGuard instead of OpenVPN (default: OpenVPN).
       -k, --keep-alive         Don't tear down namespace after command exits.
           --check-xtables      Abort if /run/xtables.lock is held by another
@@ -69,6 +92,7 @@ let
       with-vpn -w brazil -- firefox            # WireGuard instead of OpenVPN
       with-vpn -f 8080 -f 9090 -- some-server  # forward ports 8080 and 9090
       with-vpn -H -- curl http://vopono.host:5001  # reach a host service
+      with-vpn -P 7000 -- curl http://vopono.host:7000  # a 127.0.0.1-only one
     EOF
     }
 
@@ -81,6 +105,7 @@ let
     tune=1
     forward_args=()
     host_args=()
+    host_ports=()
 
     tune_openvpn_configs() {
       local dir="$1" f
@@ -106,6 +131,7 @@ let
         -c|--config)    custom_cfg="$2"; shift 2 ;;
         -f|--forward)   forward_args+=(--forward "$2"); shift 2 ;;
         -H|--allow-host-access) host_args=(--allow-host-access); shift ;;
+        -P|--host-port) host_ports+=("$2"); host_args=(--allow-host-access); shift 2 ;;
         -w|--wireguard) protocol="wireguard"; shift ;;
         -k|--keep-alive) keep=1; shift ;;
         --check-xtables) check_xtables=1; shift ;;
@@ -138,6 +164,10 @@ let
     [[ "''${1:-}" == "--" ]] && shift
     [[ $# -ge 1 ]] || { echo "with-vpn: no command specified" >&2; exit 2; }
 
+    for port in "''${host_ports[@]}"; do
+      [[ "$port" =~ ^[0-9]+$ ]] || { echo "with-vpn: --host-port needs a port number, not '$port'" >&2; exit 2; }
+    done
+
     if [[ -z "$iface" ]]; then
       iface="$(${ip} route show default 2>/dev/null | ${awk} '/default/ {print $5; exit}')"
       [[ -n "$iface" ]] || { echo "with-vpn: could not auto-detect default interface" >&2; exit 2; }
@@ -162,10 +192,63 @@ let
     # (vopono uses sudo which resets PATH via secure_path)
     quoted="env PATH=$PATH ''${quoted}"
 
+    if [[ ''${#host_ports[@]} -gt 0 ]]; then
+      relay_dir="$(${mktemp} -d)"
+      quoted="${host-handshake} $(printf '%q' "$relay_dir/ip") $(printf '%q' "$relay_dir/ready") ''${quoted}"
+    fi
+
     vopono_args=(exec -i "$iface" --dns "$dns" "''${forward_args[@]}" "''${host_args[@]}" "''${provider_args[@]}" "''${quoted}")
     [[ $keep -eq 1 ]] && vopono_args=(exec --keep-alive -i "$iface" --dns "$dns" "''${forward_args[@]}" "''${host_args[@]}" "''${provider_args[@]}" "''${quoted}")
 
-    exec ${vopono} "''${vopono_args[@]}"
+    if [[ ''${#host_ports[@]} -eq 0 ]]; then
+      exec ${vopono} "''${vopono_args[@]}"
+    fi
+
+    relay() {
+      local host_ip port i
+      trap 'kill $(jobs -p) 2>/dev/null; exit 0' TERM
+      until [[ -s "$relay_dir/ip" ]]; do
+        ${sleep} 0.2
+      done
+      host_ip="$(<"$relay_dir/ip")"
+      if [[ -z "$host_ip" ]]; then
+        echo "with-vpn: the namespace has neither VOPONO_HOST_IP nor vopono.host, so nothing is relayed" >&2
+        : >"$relay_dir/ready"
+        wait
+        return 0
+      fi
+      for port in "''${host_ports[@]}"; do
+        ${socat} -d0 "TCP-LISTEN:$port,bind=$host_ip,fork,reuseaddr" "TCP:127.0.0.1:$port" &
+      done
+      for port in "''${host_ports[@]}"; do
+        for ((i = 0; i < 50; i++)); do
+          ${ss} -ltnH | ${awk} -v a="$host_ip:$port" '$4 == a { found = 1 } END { exit !found }' && break
+          ${sleep} 0.1
+        done
+        if (( i < 50 )); then
+          echo "with-vpn: relaying vopono.host:$port to 127.0.0.1:$port" >&2
+        else
+          echo "with-vpn: could not listen on $host_ip:$port, so vopono.host:$port is not relayed" >&2
+        fi
+      done
+      : >"$relay_dir/ready"
+      wait
+    }
+
+    relay &
+    relay_pid=$!
+    cleanup() {
+      kill "$relay_pid" 2>/dev/null
+      wait "$relay_pid" 2>/dev/null
+      ${rm} -rf "$relay_dir"
+    }
+    trap cleanup EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+
+    status=0
+    ${vopono} "''${vopono_args[@]}" || status=$?
+    exit "$status"
   '';
 in
 {
