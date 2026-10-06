@@ -15,6 +15,7 @@ in
 
   armanConfig.mpv.enable = true;
   armanConfig.hostNvidia.enable = true;
+  armanConfig.ai.ralph.enable = true;
 
   services.flameshot = {
     enable = true;

@@ -49,6 +49,7 @@ let
     ];
     ro = [
       "$HOME/.config/git"
+      "$HOME/.dotfiles"
     ];
     envs = [
       "ANTHROPIC_API_KEY"

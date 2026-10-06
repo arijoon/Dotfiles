@@ -60,6 +60,7 @@
         ./sandbox.nix
         ./network.nix
         ./mpv.nix
+        ./ai
       ];
 
       # On NixOS, GL works natively — drop the generic-Linux GPU setup

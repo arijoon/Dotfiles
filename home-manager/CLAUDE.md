@@ -16,6 +16,7 @@ Shared by both profiles (`commonMods` in `flake.nix`):
 | `common-scripts.nix`  | `update-ai` — reinstalls a CLI from `numtide/llm-agents.nix`              |
 | `nixgl.nix`           | nixGL wrappers for non-NixOS GL (mesa default, nvidiaPrime offload)       |
 | `mpv.nix`             | mpv player (option `armanConfig.mpv.enable`, default `false`; on for `dsk`). Latest mpv + nixGL, re-wrapped so ffmpeg + subliminal are on mpv's PATH only (not the profile) and `~/.config/mpv/secrets.env` is sourced for script creds. Config from `home-files/mpv/` |
+| `ai/`                  | AI tooling. Claude itself stays a `nix profile` install (`update-ai`); HM never manages its binary, settings or `~/.claude` dirs, it only links skills: each is an out-of-store symlink `~/.claude/skills/<name>` → this repo, so edits land here. `ai/ralph/` (option `armanConfig.ai.ralph.enable`; on for `dsk`): the `ralph` loop command (`ralph.sh`, default prompts in `templates/`) and its skill (`skill/`). `test.sh` is the stubbed scenario suite, run against the installed `ralph`: `bash ai/ralph/test.sh` |
 
 Profile-only modules (loaded only by `arman`):
 
