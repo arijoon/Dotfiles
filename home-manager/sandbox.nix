@@ -4,7 +4,11 @@ let
 
   sandbox-run = pkgs.writeShellApplication {
     name = "sandbox-run";
-    runtimeInputs = [ pkgs-latest.landrun ];
+    runtimeInputs = [
+      pkgs-latest.landrun
+      pkgs.bubblewrap
+      pkgs.coreutils
+    ];
     text = builtins.readFile ./scripts/sandbox-run;
   };
 
@@ -20,6 +24,8 @@ let
       ro ? [ ],
       envs ? [ ],
       noNetwork ? false,
+      noNix ? false,
+      noBwrap ? false,
     }:
     pkgs.writeShellApplication {
       inherit name;
@@ -29,7 +35,9 @@ let
         export SANDBOX_ROX_PATHS=${"\""}${concatStringsSep "\n" rox}${"\""}
         export SANDBOX_RO_PATHS=${"\""}${concatStringsSep "\n" ro}${"\""}
         export SANDBOX_FORWARD_ENV=${"\""}${concatStringsSep "\n" envs}${"\""}
-        exec sandbox-run ${if noNetwork then "--no-network " else ""}"$@"
+        exec sandbox-run ${if noNetwork then "--no-network " else ""}${if noNix then "--no-nix " else ""}${
+          if noBwrap then "--no-bwrap " else ""
+        }"$@"
       '';
     };
 

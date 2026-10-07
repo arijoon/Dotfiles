@@ -29,6 +29,8 @@
 #   sandbox-run -l --rw "$HOME/.cache/foo" --ro /opt -- foo --bar
 
 network=1
+nix=1
+bwrap=1
 extra=()
 
 usage() {
@@ -39,11 +41,23 @@ Pre-allows the system paths CLI tools usually need (nix store, /usr,
 common /etc bits, /dev tty/null/urandom, /tmp), grants rwx to $PWD,
 and forwards a standard set of env vars. Network is ON by default.
 
+landrun can't stop a process connecting to a unix socket it can see,
+so by default a bubblewrap layer runs under it: the command gets its
+own /tmp and process list, and /run/user/$UID (gpg-agent, D-Bus, ssh
+agents), the system D-Bus and the docker socket are hidden. The nix
+daemon stays reachable and ~/.cache/nix is granted, unless --no-nix.
+
 Usage:
   sandbox-run [opts] [-l <landrun args...>] -- <command> [args...]
 
 Options:
   -N, --no-network      Block network access (network is on by default).
+  -n, --no-nix          Hide the nix daemon's socket and don't grant
+                        ~/.cache/nix (nix is on by default).
+  -B, --no-bwrap        Skip the bubblewrap layer: landrun's disk
+                        restrictions stay, but /tmp, /run/user/$UID, the
+                        D-Bus, docker and nix sockets and your other
+                        processes are reachable again.
   -l, --landrun         Treat every following arg as a raw landrun arg
                         until the closing -- is reached. Use this once,
                         right before --, e.g.
@@ -61,6 +75,8 @@ Env vars (used by presets like sandbox-ai):
 Examples:
   sandbox-run -- bash
   sandbox-run -N -- ./build.sh
+  sandbox-run -n -- ./agent        # no nix daemon either
+  sandbox-run -B -- bash           # disk restrictions only
   sandbox-run -l --rw "$HOME/.cache/foo" --ro /opt -- foo --bar
 EOF
 }
@@ -69,6 +85,14 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     -N|--no-network)
       network=0
+      shift
+      ;;
+    -n|--no-nix)
+      nix=0
+      shift
+      ;;
+    -B|--no-bwrap)
+      bwrap=0
       shift
       ;;
     -l|--landrun)
@@ -158,8 +182,41 @@ if [[ $network -eq 1 ]]; then
   args+=(--unrestricted-network)
 fi
 
+if [[ $nix -eq 1 ]]; then
+  mkdir -p "$HOME/.cache/nix"
+  args+=(--rw "$HOME/.cache/nix")
+elif [[ $bwrap -eq 0 ]]; then
+  echo "sandbox-run: --no-nix needs the bubblewrap layer to hide the daemon; drop --no-bwrap" >&2
+  exit 2
+fi
+
 if [[ ${#extra[@]} -gt 0 ]]; then
   args+=("${extra[@]}")
 fi
 
-exec landrun "${args[@]}" -- "$@"
+if [[ $bwrap -eq 0 ]]; then
+  exec landrun "${args[@]}" -- "$@"
+fi
+
+bw=(--dev-bind / / --die-with-parent --unshare-pid --proc /proc --tmpfs /tmp)
+case "$PWD" in
+  /tmp | /tmp/*) bw+=(--bind "$PWD" "$PWD") ;;
+esac
+for dir in "/run/user/$(id -u)" /run/dbus; do
+  if [[ -d "$dir" ]]; then
+    bw+=(--tmpfs "$dir")
+  fi
+done
+hidden=()
+for sock in /run/docker.sock /var/run/docker.sock; do
+  [[ -S "$sock" ]] || continue
+  real="$(readlink -f "$sock")"
+  [[ " ${hidden[*]} " == *" $real "* ]] && continue
+  hidden+=("$real")
+  bw+=(--ro-bind /dev/null "$real")
+done
+if [[ $nix -eq 0 && -d /nix/var/nix/daemon-socket ]]; then
+  bw+=(--tmpfs /nix/var/nix/daemon-socket)
+fi
+
+exec bwrap "${bw[@]}" -- landrun "${args[@]}" -- "$@"
