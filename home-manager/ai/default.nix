@@ -1,3 +1,6 @@
 {
-  imports = [ ./ralph ];
+  imports = [
+    ./ralph
+    ./opencode
+  ];
 }

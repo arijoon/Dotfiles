@@ -9,6 +9,8 @@
   home.username = "arman";
   home.homeDirectory = "/home/arman";
 
+  armanConfig.ai.opencode.enable = true;
+
   # start-ticket: create a Jira ticket -> wt worktree -> kitty tab title.
   # Sourced as a zsh function (after worktrunk's `wt` init in home.nix) so that
   # `wt switch` can cd the interactive shell into the new worktree.
@@ -45,5 +47,6 @@
       yq
       mongosh
       alacritty
-    ] ++ latest;
+    ]
+    ++ latest;
 }
