@@ -86,6 +86,7 @@ in
         autoupdate = false;
         model = "llama/${cfg.model}";
         small_model = "llama/${cfg.model}";
+        permission.external_directory = "allow";
         provider.llama = {
           npm = "@ai-sdk/openai-compatible";
           name = "llama.cpp";
