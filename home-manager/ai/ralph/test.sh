@@ -1,6 +1,7 @@
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/ralph-test.XXXXXX")"
 trap '[ -n "${RALPH_TEST_KEEP:-}" ] || { chmod -R u+w "$tmp" 2>/dev/null; rm -rf "$tmp"; }' EXIT
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
+unset RALPH_CONFIG RALPH_TARGET RALPH_AGENT RALPH_REVIEW_AGENT RALPH_TIMEOUT RALPH_RETRIES RALPH_JOBS RALPH_MAX_TASKS
 stubs="$tmp/bin"
 mkdir -p "$stubs"
 export PATH="$stubs:$PATH"
@@ -34,8 +35,9 @@ stub() {
   chmod +x "$stubs/$1"
 }
 
-stub claude <<'STUB'
+stub fake-agent <<'STUB'
 set -euo pipefail
+[ "${1:-}" != --stub-probe ] || exec echo stub
 prompt="$(cat)"
 log="$RALPH_TEST_LOG"
 id="$RALPH_TASK_ID"
@@ -49,19 +51,27 @@ echo "$$" >"$log/$id.pid"
 if grep -q 'adversarial reviewer' <<<"$prompt"; then
   echo review >>"$log/$id.calls"
   printf '%s\n' "$prompt" >"$log/$id.review-prompt"
-  if [ "$(want review)" = fail ]; then
-    echo probe >review-probe.txt
-    git add review-probe.txt
-    git commit --quiet -m "Probe the branch"
-    echo probe >stray.txt
-    exit 3
-  fi
-  jq -nc --arg id "$id" '{type: "result", subtype: "success", is_error: false, result: "Verdict: issues found\n\n## Scope\n\nTask \($id).\n\n## Findings\n\n### major: task \($id) weakens the gate\n\nThe scenario.\n\n## Checked and held\n\n### the gate still runs\n"}'
-  exit 0
+  printf '%s\n' "$*" >"$log/$id.review-argv"
+  case "$(want review)" in
+    fail)
+      echo probe >review-probe.txt
+      git add review-probe.txt
+      git commit --quiet -m "Probe the branch"
+      echo probe >stray.txt
+      exit 3
+      ;;
+    silent) exit 0 ;;
+    late) code=3 ;;
+  esac
+  report="$(grep -o '/[^`]*review-report\.md' <<<"$prompt" | head -n 1)"
+  printf 'Verdict: issues found\n\n## Scope\n\nTask %s.\n\n## Findings\n\n### major: task %s weakens the gate\n\nThe scenario.\n\n## Checked and held\n\n### the gate still runs\n' "$id" "$id" >"$report"
+  echo "the report is in $report"
+  exit "${code:-0}"
 fi
 
 echo agent >>"$log/$id.calls"
 printf '%s\n' "$prompt" >"$log/$id.prompt"
+printf '%s\n' "$*" >"$log/$id.argv"
 env | sort >"$log/$id.env"
 attempt="$(sed -n 's/^- Attempt: \([0-9]*\)\..*/\1/p' <<<"$prompt")"
 pause="$(want sleep)"
@@ -80,7 +90,7 @@ if grep -q 'Rebase this branch onto' <<<"$prompt"; then
     resolve
     GIT_EDITOR=true git rebase --continue >/dev/null
   fi
-  jq -nc '{type: "result", subtype: "success", is_error: false, result: "rebased"}'
+  echo rebased
   exit 0
 fi
 
@@ -99,18 +109,18 @@ case "$(want act)" in
       sed -i 's/^status: todo$/status: blocked/' "$file"
       printf '\n## Open questions\n\n1. Red or blue?\n' >>"$file"
       commit
-      jq -nc '{type: "result", subtype: "success", is_error: false, result: "blocked"}'
+      echo blocked
       exit 0
     fi
     grep -q '^## Answers' "$file" || exit 9
     sed -i 's/^status: blocked$/status: done/' "$file"
     ;;
   crash)
-    jq -nc '{type: "result", subtype: "error", is_error: true, result: "the agent gave up"}'
+    echo "the agent gave up"
     exit 1
     ;;
   nocommit)
-    jq -nc '{type: "result", subtype: "success", is_error: false, result: "nothing"}'
+    echo nothing
     exit 0
     ;;
   fail-once)
@@ -138,22 +148,16 @@ case "$(want act)" in
     git config --worktree core.hooksPath .githooks
     ;;
 esac
-jq -nc '{type: "result", subtype: "success", is_error: false, result: "done"}'
+echo done
 STUB
-
-stub sandbox-stub <<'STUB'
-set -euo pipefail
-[ "$1" = -l ] || exit 64
-shift
-args=()
-while [ "$1" != -- ]; do
-  args+=("$1")
-  shift
+[ "$("$stubs/fake-agent" --stub-probe </dev/null 2>/dev/null)" = stub ] ||
+  fail "$stubs/fake-agent can't be executed; point TMPDIR at a directory that allows exec"
+for agent in claude opencode; do
+  stub "$agent" <<'STUB'
+echo "ralph-test: ${0##*/} was started; the ralph under test is not the one these tests are for" >&2
+exit 97
+STUB
 done
-shift
-printf '%s\n' "${args[*]}" >>"$RALPH_TEST_LOG/sandbox"
-exec "$@"
-STUB
 
 stub fake-svc <<'STUB'
 set -uo pipefail
@@ -179,7 +183,7 @@ repo() {
   git -C "$dir" config user.email ralph-test@localhost
   printf '.tmp/\n' >"$dir/.gitignore"
   printf 'base\n' >"$dir/shared.txt"
-  jq -n '{gate: "test ! -e .gate-fail && echo gate-ok >>\"$RALPH_TEST_LOG/gates\"", sandbox: {mode: "inherit"}, retries: 0, timeout: "2m"}' >"$dir/.ralph/config.json"
+  jq -n '{gate: "test ! -e .gate-fail && echo gate-ok >>\"$RALPH_TEST_LOG/gates\"", agent: "fake-agent", retries: 0, timeout: "2m"}' >"$dir/.ralph/config.json"
   for spec in "$@"; do
     IFS='|' read -r slug extra <<<"$spec"
     id="${slug%%-*}"
@@ -201,7 +205,7 @@ ralph_in() {
   local name="$1"
   shift
   (
-    cd "$tmp/$name"
+    cd "$tmp/$name" || exit 1
     RALPH_TEST_LOG="$tmp/$name.log" ralph "$@"
   ) 2>&1
 }
@@ -211,12 +215,16 @@ subjects() {
 }
 
 repo dry "001-first|depends: -\ntouch: src/a.txt" "002-second|depends: 001\ntouch: .claude/settings.json"
+printf 'Attempt {{ATTEMPT}} of {{TASK_ID}}.\n' >"$tmp/dry/.ralph/instructions.md"
 out="$(ralph_in dry --dry-run)" || fail "dry run: $out"
+has "$out" "Attempt 1 of 001." "the dry run's instructions"
 has "$out" "task:      001  Task 001-first" "the dry run"
 has "$out" "branch:    ralph/001-first" "the dry run"
 has "$out" "review:    after the gate, if the branch's diff against master touches any of: .ralph/ .claude/" "the dry run"
 has "$out" "Task: **001 — Task 001-first**, described in \`docs/tasks/001-first.md\`" "the dry run's prompt"
 has "$out" "This is the first attempt at this task." "the dry run's prompt"
+has "$out" "agent:     fake-agent < prompt" "the dry run"
+has "$out" "reviewer:  fake-agent < review prompt" "the dry run"
 lacks "$out" "{{" "the dry run's prompt"
 [ ! -e "$tmp/dry/.tmp/worktrees" ] || fail "a dry run created worktrees"
 status="$(ralph_in dry --status)"
@@ -240,7 +248,9 @@ lacks "$log" "Probe the branch" "master after a review that committed"
 reviews="$tmp/seq/.tmp/ralph/tasks"
 [ ! -e "$reviews/001/review.md" ] || fail "a branch touching only src/ was reviewed"
 has "$(cat "$reviews/002/review.md")" "### major: task 002 weakens the gate" "the kept report"
+lacks "$(cat "$reviews/002/review.md")" "the report is in" "the kept report"
 has "$(cat "$tmp/seq.log/002.review-prompt")" "- \`.claude/settings.json\`" "the review's prompt"
+has "$(cat "$tmp/seq.log/002.review-prompt")" "Write the report to \`$reviews/002/" "the review's prompt"
 lacks "$(cat "$tmp/seq.log/002.review-prompt")" "{{" "the review's prompt"
 has "$(cat "$reviews/003/review.md")" "Verdict: review failed: the review exited with status 3" "the failed review's record"
 has "$(cat "$reviews/003/review.md")" "The review changed the worktree" "the failed review's record"
@@ -305,7 +315,7 @@ for act in hook config worktree-config; do
   out="$(ralph_in "guard-$act")" || status=$?
   [ "$status" -eq 1 ] || fail "planting $act exited $status, not 1: $out"
   [ "$(git -C "$tmp/guard-$act" rev-parse master)" = "$start" ] || fail "the loop merged after $act"
-  has "$out" "code could run outside the sandbox" "the loop after $act"
+  has "$out" "code could run with your next git command" "the loop after $act"
   has "$(cat "$tmp/guard-$act/.tmp/ralph/tasks/001/state.json")" '"status": "failed"' "the state after $act"
 done
 has "$(cat "$tmp/guard-hook/.tmp/ralph/tasks/001/state.json")" "added: .git/hooks/post-merge" "the state after a planted hook"
@@ -359,7 +369,7 @@ has "$merged" "002" "shared.txt after the resolved conflict"
 ok "a rebase conflict fails the attempt, and a retry that rebases and resolves it merges"
 
 repo svc "001-a|depends: -\ntouch: a.txt\nact: fail-once"
-configure svc '.retries = 1 | .services = {wrap: "fake-svc --", env: ["FAKE_PORT", "FAKE_DIR", "NOT_SET"]}'
+configure svc '.retries = 1 | .services = {wrap: "fake-svc --", env: ["FAKE_PORT", "FAKE_DIR", "NOT_SET"]} | .afterMerge = "env >\"$RALPH_TEST_LOG/after-merge.env\""'
 out="$(ralph_in svc)" || fail "a task with services: $out"
 seen="$(cat "$tmp/svc.log/001.env")"
 has "$seen" "FAKE_PORT=" "the agent's environment with services"
@@ -368,6 +378,8 @@ lacks "$seen" "NOT_SET=" "the agent's environment with services"
 [ "$(grep -c '^down 001' "$tmp/svc.log/services")" -eq 2 ] || fail "services were not torn down after each attempt"
 has "$(cat "$tmp/svc.log/001.prompt")" "started by the loop with \`fake-svc --\`" "the prompt with services"
 [ -z "$(ls -A "$tmp/svc/.tmp" 2>/dev/null | grep svc || true)" ] || fail "the services' directory was left behind"
+grep -q '^RALPH_AFTER=' "$tmp/svc.log/after-merge.env" || fail "afterMerge did not run with RALPH_AFTER"
+! grep -q '^FAKE_PORT=' "$tmp/svc.log/after-merge.env" || fail "afterMerge got the attempt's service variables"
 ok "services start per attempt, their variables reach the agent, and they are torn down"
 
 repo side "001-a|depends: -\ntouch: a.txt"
@@ -387,18 +399,41 @@ out="$(ralph_in dirty)" || status=$?
 has "$out" "uncommitted changes" "the loop with a dirty checkout"
 ok "uncommitted changes where the target is checked out stop the loop before it starts"
 
-repo wrap "001-a|depends: -\ntouch: .ralph/notes.md"
-configure wrap '.sandbox = {mode: "wrap", command: "sandbox-stub", rw: ["~/does-not-exist"], ro: ["docs"]} | .env = {PARTITION: "_r{{TASK_ID}}"}'
-out="$(ralph_in wrap)" || fail "the loop in wrap mode: $out"
-args="$(cat "$tmp/wrap.log/sandbox")"
-has "$args" "--rw $tmp/wrap/.git" "the sandbox's arguments"
-has "$args" "--ro $tmp/wrap/docs" "the sandbox's arguments"
-has "$args" "--env RALPH_TASK_ID" "the sandbox's arguments"
-has "$args" "--env PARTITION" "the sandbox's arguments"
-lacks "$args" "does-not-exist" "the sandbox's arguments"
-[ "$(wc -l <<<"$args")" -eq 3 ] || fail "expected the agent, the gate and the review to be sandboxed: $args"
-has "$(cat "$tmp/wrap.log/001.env")" "PARTITION=_r001" "the agent's environment"
-ok "wrap mode sandboxes the agent, the gate and the review with the configured paths and environment"
+repo cmd "001-a|depends: -\ntouch: .ralph/notes.md" "002-b|depends: -\ntouch: .opencode/agent.md\nreview: silent" \
+  "003-c|depends: -\ntouch: opencode.json\nreview: late"
+printf 'You are the adversarial reviewer of {{TASK_ID}}.\n' >"$tmp/cmd/.ralph/review-prompt.md"
+printf 'Compare {{BASE}} with {{HEAD}}.\n' >"$tmp/cmd/.ralph/review.md"
+configure cmd '.agent = "FLAVOUR=\"two words\" fake-agent --worker \"$RALPH_TASK_ID\"" | .reviewAgent = "fake-agent --reviewer" | .env = {PARTITION: "_r{{TASK_ID}}"} | .reviewPrompt = ".ralph/review-prompt.md"'
+out="$(ralph_in cmd)" || fail "the loop with a command string: $out"
+[ "$(cat "$tmp/cmd.log/001.argv")" = "--worker 001" ] || fail "the agent's arguments: $(cat "$tmp/cmd.log/001.argv")"
+grep -qx 'FLAVOUR=two words' "$tmp/cmd.log/001.env" || fail "the agent command's own variable did not reach it"
+grep -qx 'PARTITION=_r001' "$tmp/cmd.log/001.env" || fail "env did not reach the agent"
+[ "$(cat "$tmp/cmd.log/001.review-argv")" = "--reviewer" ] || fail "the reviewer's arguments: $(cat "$tmp/cmd.log/001.review-argv")"
+has "$(cat "$tmp/cmd/.tmp/ralph/tasks/002/review.md")" "Verdict: review failed: the review wrote no report to .tmp/ralph/tasks/002/" "a review that wrote no report"
+late="$(cat "$tmp/cmd/.tmp/ralph/tasks/003/review.md")"
+has "$late" "Verdict: review failed: the review exited with status 3" "a review that failed after writing its report"
+has "$late" "### major: task 003 weakens the gate" "a review that failed after writing its report"
+custom="$(cat "$tmp/cmd.log/001.review-prompt")"
+has "$custom" "Write the report to \`$tmp/cmd/.tmp/ralph/tasks/001/" "a custom review prompt without {{REPORT_FILE}}"
+grep -qE '^Compare [0-9a-f]{40} with [0-9a-f]{40}\.$' <<<"$custom" || fail "the review instructions' placeholders: $custom"
+lacks "$custom" "{{" "the review instructions"
+[ "$(RALPH_REVIEW_AGENT=other ralph_in cmd --config | jq -r .reviewAgent)" = other ] || fail "RALPH_REVIEW_AGENT did not override reviewAgent"
+[ "$(RALPH_AGENT=one ralph_in cmd --config --agent two | jq -r .agent)" = two ] || fail "--agent did not override RALPH_AGENT"
+[ "$(RALPH_AGENT=one ralph_in cmd --config | jq -r .agent)" = one ] || fail "RALPH_AGENT did not override agent"
+[ "$(ralph_in cmd --config --agent=solo | jq -r .agent)" = solo ] || fail "--agent=CMD was not read"
+[ "$(ralph_in cmd --config --review-agent judge | jq -r .reviewAgent)" = judge ] || fail "--review-agent was not read"
+[ "$(ralph_in cmd --config --review-agent=judge | jq -r .reviewAgent)" = judge ] || fail "--review-agent=CMD was not read"
+status=0
+out="$(ralph_in cmd --config --agent=)" || status=$?
+[ "$status" -ne 0 ] || fail "an empty --agent= was accepted"
+has "$out" "--agent needs a command" "an empty --agent="
+configure cmd 'del(.agent, .reviewAgent)'
+[ "$(ralph_in cmd --config --agent solo | jq -r .reviewAgent)" = solo ] || fail "the reviewer did not fall back to the agent"
+status=0
+out="$(ralph_in cmd)" || status=$?
+[ "$status" -ne 0 ] || fail "the loop ran without an agent command"
+has "$out" "no agent command is set" "the loop without an agent command"
+ok "the agent and reviewer are shell commands from the config, RALPH_* or flags, with the prompt on stdin"
 
 repo notready "001-a|depends: -\ntouch: a.txt" "002-b|depends: 001\ntouch: b.txt"
 status=0
@@ -412,7 +447,7 @@ ok "--task runs exactly the named task, and refuses one that isn't ready"
 repo stop "001-slow|depends: -\nsleep: 30\ntouch: a.txt"
 configure stop '.services = {wrap: "fake-svc --", env: ["FAKE_PORT"]}'
 (
-  cd "$tmp/stop"
+  cd "$tmp/stop" || exit 1
   exec env --default-signal=INT RALPH_TEST_LOG="$tmp/stop.log" ralph
 ) >"$tmp/stop.out" 2>&1 &
 loop=$!

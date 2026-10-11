@@ -1,11 +1,11 @@
 ---
 name: ralph
-description: The Ralph loop (the `ralph` command) — works through a repo's task files, one git worktree and branch per task, each done by a sandboxed unattended `claude -p`, gated, reviewed when it touches sensitive paths, and fast-forwarded into the target; runs tasks in parallel with --jobs. Load when running the loop, setting it up in a project (.ralph/config.json, task and decision files), writing or editing tasks, resuming, discarding or reading reviews, or when you are an iteration or reviewer inside it.
+description: The Ralph loop (the `ralph` command) — works through a repo's task files, one git worktree and branch per task, each done by an unattended agent command you pass (claude, opencode, anything that reads its prompt on stdin), gated, reviewed when it touches sensitive paths, and fast-forwarded into the target; runs tasks in parallel with --jobs. Load when running the loop, setting it up in a project (.ralph/config.json, task and decision files), writing or editing tasks, resuming, discarding or reading reviews, or when you are an iteration or reviewer inside it.
 ---
 
 # The Ralph loop
 
-`ralph` is on PATH (home-manager, `armanConfig.ai.ralph`). It runs in any git repository that has a `.ralph/config.json` with a `gate`, and task files on the target branch.
+`ralph` is on PATH (home-manager, `armanConfig.ai.ralph`). It runs in any git repository that has a `.ralph/config.json` with a `gate`, an agent command, and task files on the target branch.
 
 ## The rules
 
@@ -16,13 +16,36 @@ description: The Ralph loop (the `ralph` command) — works through a repo's tas
 5. **The loop never stops to ask about a merge.** A branch touching a sensitive path gets an adversarial review whose report waits for the user, and merges anyway.
 6. **Iterations never touch git config or hooks.** The loop fingerprints `.git/config`, every `config.worktree`, `.git/info/attributes` and `.git/hooks` when it starts, and refuses to merge, and stops, if any of them changes. Its own git commands run with hooks and fsmonitor off.
 
-## First: are you already sandboxed?
+## The agent command
+
+ralph knows nothing about any particular agent. It runs the command you give it with `bash -c` in the task's worktree, with the rendered prompt on stdin, and judges the attempt only by its exit status and what it leaves in git. Anything that works that way will do:
+
+```
+ralph --agent 'claude -p --dangerously-skip-permissions --settings "$RALPH_ROOT/.ralph/claude-settings.json"'
+ralph --agent "OPENCODE_CONFIG_CONTENT='{\"permission\":\"allow\",\"share\":\"disabled\",\"autoupdate\":false}' LLAMA_SERVER=127.0.0.1:5001 opencode run"
+```
+
+The command comes from `--agent`, then `RALPH_AGENT`, then `agent` in the config; there is no default. The review of a sensitive branch runs `--review-agent`, `RALPH_REVIEW_AGENT` or `reviewAgent`, falling back to the agent command, so one agent can review another's work.
+
+Before choosing a command, read the reference for that agent:
+
+- [references/claude.md](references/claude.md): Claude Code (`claude -p`).
+- [references/opencode.md](references/opencode.md): opencode (`opencode run`).
+
+## Sandboxing is yours
+
+ralph sandboxes nothing: the agent, the gate, the review, `setup`, the services and `afterMerge` all run with ralph's own access. Before starting it, check whether you are already sandboxed:
 
 ```
 ls / >/dev/null 2>&1 && echo "not sandboxed" || echo "sandboxed"
 ```
 
-`ralph` checks this itself (`sandbox.mode: auto`): when `ls /` is denied it is inside landrun, and iterations share that sandbox (`inherit`). Otherwise it wraps every agent, gate and review in `sandbox-ai` (`wrap`). Never nest a second sandbox inside the first; `--in-sandbox` forces `inherit`. Inside a shared sandbox, the worktrees must be under the directory the outer sandbox can write, which the default `.tmp/worktrees` is.
+If you are (inside landrun), the loop and everything it starts share your sandbox. Don't nest another one. Otherwise pick one:
+
+- **Wrap the whole loop**: `sandbox-ai -- ralph --agent '…'`, started from the main checkout, so the worktrees, the state dir and `.git` are inside its read-write `$PWD`. Everything runs in it, including services. The bubblewrap layer hides the docker socket and `/run/user`, so services that need those won't start. The sandbox passes in only a fixed set of variables, so give ralph its settings as flags (`--jobs 3`, `--agent '…'`) rather than `RALPH_*` variables, or forward them with `-l --env RALPH_JOBS`.
+- **Wrap only the agent**: put the sandbox in the command, e.g. `--agent 'sandbox-ai -l --rw "$RALPH_ROOT/.git" --rw "$RALPH_ROOT/.tmp/ralph" --ro "$RALPH_ROOT/.ralph" --env GIT_CONFIG_COUNT --env GIT_CONFIG_KEY_0 --env GIT_CONFIG_VALUE_0 -- claude -p --dangerously-skip-permissions --settings "$RALPH_ROOT/.ralph/claude-settings.json"'`. The agent commits through the main `.git`, and a reviewer writes its report into the state dir, so both must be writable. landrun hands the command only the variables named with `--env`: forward the three `GIT_CONFIG_*` ones (they switch commit signing off, and gpg is out of the sandbox's reach anyway), and any `RALPH_*`, `env` or `services.env` variable the agent needs. Set new ones after the sandbox, with `-- env NAME=value <agent>`. The gate, `setup`, services and `afterMerge` then run unsandboxed; wrap the gate in the same way if it should not be.
+
+Either way the git guard below still applies: ralph's own git commands run with hooks off, and it refuses to merge if anything changed `.git/config` or `.git/hooks`.
 
 ## Commands
 
@@ -38,18 +61,20 @@ ralph --resume 042      continue a failed or blocked task in its kept worktree, 
 ralph --discard 042     delete its worktree, branch and state, so it starts fresh
 ralph --reviews         print the last run's reviews again
 ralph --keep-going      keep starting tasks after one fails or blocks (default: stop starting new ones)
+ralph --agent 'CMD'     the command that does each task (prompt on stdin)
+ralph --review-agent 'CMD'  the command that reviews sensitive branches (default: the agent)
 ```
 
-Exit status: 0 when everything started was merged, 1 when a task failed, 3 when one blocked and none failed, 130 when interrupted. One-run overrides: `RALPH_TARGET`, `RALPH_MODEL`, `RALPH_TIMEOUT`, `RALPH_RETRIES`, `RALPH_JOBS`, `RALPH_MAX_TASKS`, `RALPH_SANDBOX`, `RALPH_CONFIG`.
+Exit status: 0 when everything started was merged, 1 when a task failed, 3 when one blocked and none failed, 130 when interrupted. One-run overrides: `RALPH_TARGET`, `RALPH_AGENT`, `RALPH_REVIEW_AGENT`, `RALPH_TIMEOUT`, `RALPH_RETRIES`, `RALPH_JOBS`, `RALPH_MAX_TASKS`, `RALPH_CONFIG`.
 
 Several `ralph` processes can run in one repository at once: each claims a task under a lock, so two never take the same one.
 
 ## Setting up a project
 
-1. `.ralph/config.json` with at least the gate:
+1. `.ralph/config.json` with at least the gate and, unless every run passes `--agent`, the agent command:
 
    ```json
-   { "gate": "nix flake check" }
+   { "gate": "nix flake check", "agent": "claude -p --dangerously-skip-permissions --settings \"$RALPH_ROOT/.ralph/claude-settings.json\"" }
    ```
 
    Every key, with an example for a project with its own Postgres per attempt, is in [references/config.md](references/config.md).
@@ -61,15 +86,16 @@ Several `ralph` processes can run in one repository at once: each claims a task 
 ## What one task goes through
 
 1. **Pick**: the lowest id (version order) with `status: todo` on the target, whose `depends` are all `done` there, with no kept state and not claimed by another worker or process.
-2. **Worktree**: `git worktree add -b ralph/<id>-<slug> <worktreeDir>/ralph-<id>-<slug> <target>`, then `setup` in it (outside the sandbox: copying build caches, e.g. `wt step copy-ignored`).
-3. **Services**: when `services.wrap` is set, the loop starts it (outside the sandbox, in the worktree) around a process that holds it open, and passes the variables named in `services.env` to the agent, the gate and the review. It is torn down when the attempt ends; a retry gets a new one. This is how a project gives every attempt its own database (`with-pg-db --`).
-4. **Agent**: `claude -p --dangerously-skip-permissions --settings <settings> --output-format stream-json --verbose`, the rendered prompt on stdin, under `timeout`, in the sandbox, in the worktree. Commit signing is switched off for it through `GIT_CONFIG_*`, since the sandbox can't reach gpg.
-5. **Checks**: the agent exited 0, the worktree is clean, there is at least one commit, and the task file says `done` (or `blocked`). Then the gate, in the sandbox.
-6. **Review**: if the branch's diff touches `sensitivePaths`, one more `claude -p` with the review prompt; its last message becomes `<stateDir>/tasks/<id>/review.md`. A review that changes the worktree is reset. The merge goes ahead either way.
+2. **Worktree**: `git worktree add -b ralph/<id>-<slug> <worktreeDir>/ralph-<id>-<slug> <target>`, then `setup` in it (copying build caches, e.g. `wt step copy-ignored`).
+3. **Services**: when `services.wrap` is set, the loop starts it in the worktree around a process that holds it open, and passes the variables named in `services.env` to the agent, the gate and the review. It is torn down when the attempt ends; a retry gets a new one. This is how a project gives every attempt its own database (`with-pg-db --`).
+4. **Agent**: the agent command under `bash -c`, the rendered prompt on stdin, under `timeout`, in the worktree; its output goes to `agent.log`. Commit signing is switched off for it through `GIT_CONFIG_*`, since nobody is there to answer gpg (a sandbox around the agent alone must forward those variables).
+5. **Checks**: the agent exited 0, the worktree is clean, there is at least one commit, and the task file says `done` (or `blocked`). Then the gate.
+6. **Review**: if the branch's diff touches `sensitivePaths`, the review agent runs with the review prompt, which names a file in the state dir for its report (`{{REPORT_FILE}}`). That report becomes `<stateDir>/tasks/<id>/review.md`. No report, or a non-zero exit, is recorded as a failed review, with any report it did write kept below the failure. A review that changes the worktree is reset. The merge goes ahead either way.
+   The reviewer runs in the branch's own worktree, so its agent loads that branch's project config: `.claude/` settings and hooks, `.mcp.json`, `opencode.json`, `.opencode/` plugins. A branch that changed those has a hand in its own review; read the report with that in mind, and point the reviewer's own settings at `$RALPH_ROOT` (the main checkout), not at a path relative to the worktree.
 7. **Merge**, under a lock shared by every worker: if the target moved since the branch started, rebase onto it and run the gate again; then fast-forward the target where it is checked out (its tracked files must be clean), or move the ref with a compare-and-swap if it isn't checked out anywhere. Then `afterMerge` in that checkout, and the worktree and branch are deleted.
 8. **Failure**: up to `retries` more attempts in the same worktree, with the failure (gate output, timeout, dirty tree, rebase conflict) in the prompt. Then the task's state is kept and the worktree stays.
 
-Logs, prompts and reviews live in `<stateDir>/tasks/<id>/`, named `<run>.<attempt>.<what>`: `agent.jsonl`, `prompt.md`, `gate.log`, `gate-rebased.log`, `services.log`, `review.jsonl`, `merge.log`.
+Logs, prompts and reviews live in `<stateDir>/tasks/<id>/`, named `<run>.<attempt>.<what>`: `setup.log` (attempt 0), `agent.log`, `prompt.md`, `gate.log`, `gate-rebased.log`, `services.log`, `review-prompt.md`, `review.log`, `review-report.md`, `merge.log`.
 
 ## When a task blocks or fails
 

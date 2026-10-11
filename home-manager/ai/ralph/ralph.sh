@@ -10,8 +10,9 @@ usage() {
 Usage: ralph [options]
 
 Works through a repository's task files. Each task gets its own git worktree
-and branch, a sandboxed `claude -p` does it, the gate must pass, and the branch
-is fast-forwarded into the target branch.
+and branch, the agent command does it with the prompt on stdin, the gate must
+pass, and the branch is fast-forwarded into the target branch. ralph sandboxes
+nothing: run it, or the agent command, inside a sandbox yourself.
 
   (no option)      work through ready tasks until none are left
   -j, --jobs N     work on up to N tasks at the same time
@@ -24,14 +25,15 @@ is fast-forwarded into the target branch.
   --reviews        print the last run's reviews of sensitive branches again
   --config         print the effective configuration
   --keep-going     keep starting tasks after one fails or blocks
-  --in-sandbox     iterations share the sandbox this loop already runs in
-                   (detected automatically: `ls /` is denied under landrun)
+  --agent CMD      shell command that does a task, reading its prompt on stdin
+  --review-agent CMD
+                   shell command that reviews a sensitive branch (default: the agent)
   -h, --help       show this help
 
 Configuration is read from .ralph/config.json in the main checkout, or from the
-file named by RALPH_CONFIG. RALPH_TARGET, RALPH_MODEL, RALPH_TIMEOUT,
-RALPH_RETRIES, RALPH_JOBS, RALPH_MAX_TASKS and RALPH_SANDBOX override it for
-one run.
+file named by RALPH_CONFIG. RALPH_TARGET, RALPH_AGENT, RALPH_REVIEW_AGENT,
+RALPH_TIMEOUT, RALPH_RETRIES, RALPH_JOBS and RALPH_MAX_TASKS override it for one
+run.
 USAGE
 }
 
@@ -54,8 +56,9 @@ unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_EXTERNAL_DIFF
 mode=loop
 chosen=""
 jobs_flag=""
+agent_flag=""
+review_agent_flag=""
 keep_going_flag=""
-in_sandbox_flag=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --once) mode=once ;;
@@ -70,10 +73,21 @@ while [ "$#" -gt 0 ]; do
       [ -n "$jobs_flag" ] || die "$1 needs a number"
       shift
       ;;
-    --jobs=*) jobs_flag="${1#*=}" ;;
     --status | --dry-run | --reviews | --config) mode="${1#--}" ;;
+    --agent | --review-agent)
+      [ -n "${2:-}" ] || die "$1 needs a command"
+      if [ "$1" = --agent ]; then
+        agent_flag="$2"
+      else
+        review_agent_flag="$2"
+      fi
+      shift
+      ;;
+    --jobs=* | --agent=* | --review-agent=*)
+      set -- "${1%%=*}" "${1#*=}" "${@:2}"
+      continue
+      ;;
     --keep-going) keep_going_flag=true ;;
-    --in-sandbox) in_sandbox_flag=1 ;;
     -h | --help)
       usage
       exit 0
@@ -176,30 +190,17 @@ task_timeout="${RALPH_TIMEOUT:-$(conf timeout 90m)}"
 retries="${RALPH_RETRIES:-$(conf retries 1)}"
 jobs="${jobs_flag:-${RALPH_JOBS:-$(conf jobs 1)}}"
 max_tasks="${RALPH_MAX_TASKS:-$(conf maxTasks 0)}"
-model="${RALPH_MODEL:-$(conf model)}"
+agent="${agent_flag:-${RALPH_AGENT:-$(conf agent)}}"
+review_agent="${review_agent_flag:-${RALPH_REVIEW_AGENT:-$(conf reviewAgent)}}"
+review_agent="${review_agent:-$agent}"
 keep_going="${keep_going_flag:-$(conf keepGoing false)}"
-sandbox_mode="${RALPH_SANDBOX:-$(conf sandbox.mode auto)}"
-read -r -a claude_cmd <<<"$(conf claude claude)"
-read -r -a sandbox_cmd <<<"$(conf sandbox.command sandbox-ai)"
 text="$(conf_list services.env)"
 to_lines "$text"
 svc_keys=("${lines[@]}")
-text="$(conf_list agentArgs)"
-to_lines "$text"
-agent_args=("${lines[@]}")
 text="$(conf_list unsetEnv)"
 to_lines "$text"
 unset_env=("${lines[@]}")
-text="$(conf_list sandbox.rw "$HOME/.cache/nix")"
-to_lines "$text"
-sandbox_rw=("${lines[@]}")
-text="$(conf_list sandbox.ro)"
-to_lines "$text"
-sandbox_ro=("${lines[@]}")
-text="$(conf_list sandbox.rox)"
-to_lines "$text"
-sandbox_rox=("${lines[@]}")
-text="$(conf_list sensitivePaths .ralph/ .claude/ .mcp.json .envrc .github/ .config/wt.toml)"
+text="$(conf_list sensitivePaths .ralph/ .claude/ .mcp.json .opencode/ opencode.json opencode.jsonc .envrc .github/ .config/wt.toml)"
 to_lines "$text"
 sensitive=("${lines[@]}")
 text="$(conf_map env)"
@@ -215,38 +216,6 @@ case "$keep_going" in
   true | false) ;;
   *) die "keepGoing must be true or false" ;;
 esac
-[ "${#claude_cmd[@]}" -gt 0 ] || die "claude must name a command"
-
-if [ "$in_sandbox_flag" -eq 1 ]; then
-  sandbox_mode=inherit
-fi
-sandboxed_now() {
-  ! ls / >/dev/null 2>&1
-}
-case "$sandbox_mode" in
-  auto)
-    if sandboxed_now; then
-      sandbox_mode=inherit
-    else
-      sandbox_mode=wrap
-    fi
-    ;;
-  wrap | inherit | none) ;;
-  *) die "sandbox.mode must be auto, wrap, inherit or none, not '$sandbox_mode'" ;;
-esac
-
-settings="$(
-  case "$(jq -r '.settings | type' <<<"$config")" in
-    null) jq -c . "$share/settings.json" ;;
-    object) jq -c .settings <<<"$config" ;;
-    string)
-      file="$(abs_path "$(conf settings)")"
-      [ -f "$file" ] || die "settings names $file, which does not exist"
-      jq -c . "$file"
-      ;;
-    *) die "settings must be an object or the path of a JSON file" ;;
-  esac
-)"
 
 template() {
   local value
@@ -286,7 +255,7 @@ state_file() {
 tasks_tsv=""
 
 load_tasks() {
-  local tmp dupes
+  local tmp
   local -a files
   tmp="$(mktemp -d "${TMPDIR:-/tmp}/ralph-tasks.XXXXXX")"
   if g -C "$root" cat-file -e "$target:$tasks_dir" 2>/dev/null; then
@@ -565,7 +534,7 @@ guard() {
   changes="$(fingerprint_changes)"
   [ -n "$changes" ] || return 0
   fatal="the git config or hooks changed $1: $(head -n 1 <<<"$changes")"
-  say "task $t_id: the repository's git config or hooks changed $1, so code could run outside the sandbox:"
+  say "task $t_id: the repository's git config or hooks changed $1, so code could run with your next git command:"
   to_lines "$changes"
   printf '  %s\n' "${lines[@]}" >&2
   say "task $t_id: stopping without merging; the worktree is kept at $t_wt. Undo the change, then 'ralph --resume $t_id' or 'ralph --discard $t_id'"
@@ -612,50 +581,32 @@ place() {
 }
 
 instructions_of() {
-  [ -n "$1" ] || return 0
-  fill "$(cat "$1")"
+  [ -z "$1" ] || cat "$1"
 }
 
 render_prompt() {
   local attempt="$1" context="$2" text
-  text="$(fill "$(cat "$prompt_file")")"
+  text="$(place "$(cat "$prompt_file")" INSTRUCTIONS "$(instructions_of "$instructions_file")" "Project instructions")"
+  text="$(fill "$text")"
   text="${text//\{\{ATTEMPT\}\}/$attempt}"
-  text="$(place "$text" INSTRUCTIONS "$(instructions_of "$instructions_file")" "Project instructions")"
   text="$(place "$text" CONTEXT "${context:-This is the first attempt at this task.}" "")"
   cat -s <<<"$text"
 }
 
 render_review() {
-  local base="$1" head="$2" touched="$3" text paths
+  local base="$1" head="$2" touched="$3" report_file="$4" text paths
   to_lines "$touched"
   paths="$(printf -- '- `%s`\n' "${lines[@]}")"
-  text="$(fill "$(cat "$review_file")")"
+  text="$(place "$(cat "$review_file")" INSTRUCTIONS "$(instructions_of "$review_instructions_file")" "Project instructions")"
+  if [[ $text != *"{{REPORT_FILE}}"* ]]; then
+    text+=$'\n\nWrite the report to `{{REPORT_FILE}}`.'
+  fi
+  text="$(fill "$text")"
   text="${text//\{\{BASE\}\}/$base}"
   text="${text//\{\{HEAD\}\}/$head}"
-  text="$(place "$text" INSTRUCTIONS "$(instructions_of "$review_instructions_file")" "Project instructions")"
+  text="${text//\{\{REPORT_FILE\}\}/$report_file}"
   text="$(place "$text" PATHS "$paths" "")"
   cat -s <<<"$text"
-}
-
-sandbox_args=()
-
-build_sandbox_args() {
-  local p
-  sandbox_args=()
-  [ "$sandbox_mode" = wrap ] || return 0
-  sandbox_args=(--rw "$common")
-  for p in "${sandbox_rw[@]}"; do
-    p="$(abs_path "$p")"
-    [ ! -e "$p" ] || sandbox_args+=(--rw "$p")
-  done
-  for p in "${sandbox_rox[@]}"; do
-    p="$(abs_path "$p")"
-    [ ! -e "$p" ] || sandbox_args+=(--rox "$p")
-  done
-  for p in "${sandbox_ro[@]}"; do
-    p="$(abs_path "$p")"
-    [ ! -e "$p" ] || sandbox_args+=(--ro "$(cd "$p" 2>/dev/null && pwd || echo "$p")")
-  done
 }
 
 svc_env=()
@@ -709,58 +660,18 @@ stop_services() {
 child=""
 
 run_in() {
-  local out="$1" sandboxed="$2" input="$3" status=0 kv
-  shift 3
-  local -a cmd=("$@") envs=("${task_env[@]}" "${svc_env[@]}") forward=()
-  if [ "$sandboxed" = 1 ] && [ "$sandbox_mode" = wrap ]; then
-    for kv in "${envs[@]}"; do
-      forward+=(--env "${kv%%=*}")
-    done
-    cmd=("${sandbox_cmd[@]}" -l "${sandbox_args[@]}" "${forward[@]}" -- "${cmd[@]}")
-  fi
-  (
-    [ -z "$task_fd" ] || exec {task_fd}>&-
-    [ -z "$merge_fd" ] || exec {merge_fd}>&-
-    cd "$t_wt" || exit 1
-    exec env --default-signal=INT "${unset_args[@]}" PATH="$user_path" "${envs[@]}" "$timeout_bin" --kill-after=2m "$task_timeout" "${cmd[@]}"
-  ) <"$input" >"$out" 2>&1 &
-  child=$!
-  wait "$child" || status=$?
-  child=""
-  return "$status"
-}
-
-run_hook() {
-  local script="$1" dir="$2" log="$3" status=0
-  shift 3
+  local dir="$1" input="$2" log="$3" script="$4" status=0
+  shift 4
   (
     [ -z "$task_fd" ] || exec {task_fd}>&-
     [ -z "$merge_fd" ] || exec {merge_fd}>&-
     cd "$dir" || exit 1
-    exec env --default-signal=INT "${unset_args[@]}" PATH="$user_path" "${task_env[@]}" "$@" "$timeout_bin" --kill-after=1m "$task_timeout" "$BASH" -c "$script"
-  ) </dev/null >>"$log" 2>&1 &
+    exec env --default-signal=INT "${unset_args[@]}" PATH="$user_path" "${task_env[@]}" "$@" "$timeout_bin" --kill-after=2m "$task_timeout" "$BASH" -c "$script"
+  ) <"$input" >>"$log" 2>&1 &
   child=$!
   wait "$child" || status=$?
   child=""
   return "$status"
-}
-
-agent_cmd=()
-
-build_agent_cmd() {
-  agent_cmd=("${claude_cmd[@]}" -p
-    --dangerously-skip-permissions
-    --settings "$settings"
-    --output-format stream-json
-    --verbose)
-  if [ -n "$model" ]; then
-    agent_cmd+=(--model "$model")
-  fi
-  agent_cmd+=("${agent_args[@]}")
-}
-
-agent_summary() {
-  jq -Rr 'fromjson? | select(.type == "result") | .result // empty' "$1" 2>/dev/null | tail -n 40 || true
 }
 
 limit_reason() {
@@ -774,7 +685,7 @@ run_gate() {
   local attempt="$1" label="$2" log status=0
   log="$(log_path "$attempt" "$label.log")"
   say "task $t_id attempt $attempt: $label running (log $(rel "$log"))"
-  run_in "$log" 1 /dev/null "$BASH" -c "$gate" || status=$?
+  run_in "$t_wt" /dev/null "$log" "$gate" "${svc_env[@]}" || status=$?
   [ "$status" -ne 0 ] || return 0
   failure="$(limit_reason "the gate (\`$gate\`)" "$status"). The end of its output:
 $(tail -n 150 "$log")"
@@ -782,7 +693,7 @@ $(tail -n 150 "$log")"
 }
 
 review_branch() {
-  local attempt="$1" base head touched report log prompt status=0 result reason="" note=""
+  local attempt="$1" base head touched report report_file log prompt status=0 reason="" note=""
   [ "${#sensitive[@]}" -gt 0 ] || return 0
   base="$(g -C "$t_wt" merge-base HEAD "$target")"
   head="$(g -C "$t_wt" rev-parse HEAD)"
@@ -790,17 +701,16 @@ review_branch() {
   [ -n "$touched" ] || return 0
 
   report="$t_dir/review.md"
-  log="$(log_path "$attempt" review.jsonl)"
+  report_file="$(log_path "$attempt" review-report.md)"
+  log="$(log_path "$attempt" review.log)"
   prompt="$(log_path "$attempt" review-prompt.md)"
   say "task $t_id: the branch touches $(paste -sd ' ' <<<"$touched"); reviewing it (log $(rel "$log"))"
-  render_review "$base" "$head" "$touched" >"$prompt"
-  build_agent_cmd
-  run_in "$log" 1 "$prompt" "${agent_cmd[@]}" || status=$?
-  result="$(jq -Rr 'fromjson? | select(.type == "result" and (.is_error | not)) | .result // empty' "$log" 2>/dev/null || true)"
+  render_review "$base" "$head" "$touched" "$report_file" >"$prompt"
+  run_in "$t_wt" "$prompt" "$log" "$review_agent" "${svc_env[@]}" || status=$?
   if [ "$status" -ne 0 ]; then
     reason="$(limit_reason "the review" "$status")"
-  elif [ -z "$result" ]; then
-    reason="the review ended without a report"
+  elif [ ! -s "$report_file" ]; then
+    reason="the review wrote no report to $(rel "$report_file")"
   fi
 
   if [ "$(g -C "$t_wt" rev-parse HEAD)" != "$head" ] || [ -n "$(g -C "$t_wt" status --porcelain)" ]; then
@@ -820,8 +730,12 @@ review_branch() {
     echo
     if [ -n "$reason" ]; then
       printf 'Verdict: review failed: %s\n' "$reason"
+      if [ -s "$report_file" ]; then
+        printf '\nThe reviewer wrote this report before it failed:\n\n'
+        cat "$report_file"
+      fi
     else
-      printf '%s\n' "$result"
+      cat "$report_file"
     fi
   } >"$report"
   : >"$run_dir/reviewed/$t_id"
@@ -891,7 +805,7 @@ merge_branch() {
   say "task $t_id: merged into $target"
 
   if [ -n "$after_merge" ]; then
-    if ! run_hook "$after_merge" "${checkout:-$root}" "$log" "RALPH_BEFORE=$tip" "RALPH_AFTER=$head"; then
+    if ! run_in "${checkout:-$root}" /dev/null "$log" "$after_merge" "RALPH_BEFORE=$tip" "RALPH_AFTER=$head"; then
       say "task $t_id: afterMerge failed; see $(rel "$log")"
     fi
   fi
@@ -902,14 +816,13 @@ attempt_with_services() {
   local attempt="$1" context="$2" status=0 log prompt base commits task_status
   prompt="$(log_path "$attempt" prompt.md)"
   render_prompt "$attempt" "$context" >"$prompt"
-  log="$(log_path "$attempt" agent.jsonl)"
-  build_agent_cmd
+  log="$(log_path "$attempt" agent.log)"
   say "task $t_id attempt $attempt: agent running (limit $task_timeout, log $(rel "$log"))"
-  run_in "$log" 1 "$prompt" "${agent_cmd[@]}" || status=$?
+  run_in "$t_wt" "$prompt" "$log" "$agent" "${svc_env[@]}" || status=$?
   guard "after attempt $attempt" || return 1
   if [ "$status" -ne 0 ]; then
-    failure="$(limit_reason "the agent" "$status"). Its last words:
-$(agent_summary "$log")"
+    failure="$(limit_reason "the agent" "$status"). The end of its output:
+$(tail -n 40 "$log")"
     return 1
   fi
 
@@ -1071,7 +984,7 @@ start_task() {
     say "task $t_id: could not create its worktree; see $(rel "$log")"
     return 1
   fi
-  if [ -n "$setup_cmd" ] && ! run_hook "$setup_cmd" "$t_wt" "$log"; then
+  if [ -n "$setup_cmd" ] && ! run_in "$t_wt" /dev/null "$log" "$setup_cmd"; then
     write_state failed "setup failed" 0
     outcome failed "setup failed (log $(rel "$log"))"
     say "task $t_id: setup failed; see $(rel "$log")"
@@ -1278,6 +1191,10 @@ print_status() {
   done <<<"$tasks_tsv"
 }
 
+json_list() {
+  jq -nc '$ARGS.positional' --args -- "$@"
+}
+
 print_config() {
   jq -n \
     --arg configFile "$config_file" \
@@ -1296,25 +1213,24 @@ print_config() {
     --arg retries "$retries" \
     --arg jobs "$jobs" \
     --arg maxTasks "$max_tasks" \
-    --arg model "$model" \
     --arg keepGoing "$keep_going" \
-    --arg sandbox "$sandbox_mode" \
+    --arg agent "$agent" \
+    --arg reviewAgent "$review_agent" \
+    --argjson servicesEnv "$(json_list "${svc_keys[@]}")" \
+    --argjson env "$(jq -c '.env // {}' <<<"$config")" \
+    --argjson unsetEnv "$(json_list "${unset_env[@]}")" \
+    --argjson sensitivePaths "$(json_list "${sensitive[@]}")" \
     --arg prompt "$prompt_file" \
     --arg reviewPrompt "$review_file" \
     --arg instructions "$instructions_file" \
     --arg reviewInstructions "$review_instructions_file" \
-    --argjson settings "$settings" \
     '{configFile: $configFile, root: $root, target: $target, tasksDir: $tasksDir, decisionsDir: $decisionsDir,
       worktreeDir: $worktreeDir, stateDir: $stateDir, branchPrefix: $branchPrefix, gate: $gate, setup: $setup,
-      afterMerge: $afterMerge, services: {wrap: $servicesWrap}, timeout: $timeout, retries: ($retries | tonumber),
-      jobs: ($jobs | tonumber), maxTasks: ($maxTasks | tonumber), model: $model, keepGoing: ($keepGoing == "true"),
-      sandbox: {mode: $sandbox}, prompt: $prompt, reviewPrompt: $reviewPrompt, instructions: $instructions,
-      reviewInstructions: $reviewInstructions, settings: $settings}' |
-    jq --argjson c "$config" '
-      .services.env = ($c.services.env // [])
-      | .sandbox += {command: ($c.sandbox.command // "sandbox-ai"), rw: ($c.sandbox.rw // ["~/.cache/nix"]), ro: ($c.sandbox.ro // []), rox: ($c.sandbox.rox // [])}
-      | .env = ($c.env // {}) | .unsetEnv = ($c.unsetEnv // []) | .agentArgs = ($c.agentArgs // [])
-      | .sensitivePaths = ($c.sensitivePaths // [".ralph/", ".claude/", ".mcp.json", ".envrc", ".github/", ".config/wt.toml"])'
+      afterMerge: $afterMerge, services: {wrap: $servicesWrap, env: $servicesEnv}, timeout: $timeout,
+      retries: ($retries | tonumber), jobs: ($jobs | tonumber), maxTasks: ($maxTasks | tonumber),
+      keepGoing: ($keepGoing == "true"), agent: $agent, reviewAgent: $reviewAgent, env: $env, unsetEnv: $unsetEnv,
+      sensitivePaths: $sensitivePaths, prompt: $prompt, reviewPrompt: $reviewPrompt, instructions: $instructions,
+      reviewInstructions: $reviewInstructions}'
 }
 
 review_plan() {
@@ -1335,7 +1251,7 @@ review_plan() {
 }
 
 dry_run() {
-  local id="" candidate prefix=""
+  local id="" candidate
   refresh_tasks
   for candidate in $(ready_ids); do
     [ ! -f "$(state_file "$candidate")" ] || continue
@@ -1345,22 +1261,17 @@ dry_run() {
   done
   [ -n "$id" ] || die "no task is ready"
   use_task "$id"
-  build_sandbox_args
-  build_agent_cmd
-  if [ "$sandbox_mode" = wrap ]; then
-    prefix="${sandbox_cmd[*]} -l ${sandbox_args[*]} --env … -- "
-  fi
   echo "task:      $t_id  $t_title"
   echo "file:      $t_rel on $target"
   echo "depends:   $(task_field "$t_id" 3)"
   echo "branch:    $t_branch"
   echo "worktree:  $t_wt"
   echo "setup:     ${setup_cmd:-none}"
-  echo "sandbox:   $sandbox_mode"
   echo "services:  ${services_wrap:-none}${services_wrap:+ (gives ${svc_keys[*]:-no variables})}"
-  echo "agent:     $prefix${claude_cmd[*]} -p --dangerously-skip-permissions --settings '$settings' --output-format stream-json --verbose${model:+ --model $model}${agent_args[*]:+ ${agent_args[*]}} < prompt"
+  echo "agent:     ${agent:-none set} < prompt"
   echo "gate:      ${gate:-none set}"
   echo "review:    $(review_plan)"
+  echo "reviewer:  ${review_agent:-none set} < review prompt"
   echo "merge:     fast-forward $target$(c="$(target_checkout)"; [ -z "$c" ] || printf ' in %s' "$c")${after_merge:+, then afterMerge: $after_merge}"
   echo "---- prompt ----"
   render_prompt 1 ""
@@ -1416,20 +1327,11 @@ case "$mode" in
 esac
 
 [ -n "$gate" ] || die "no gate is set; put the command that must pass before a merge in gate in $config_file (\"true\" merges without one)"
+[ -n "$agent" ] || die "no agent command is set; pass --agent '<command>', set RALPH_AGENT, or put agent in $config_file"
 timeout_bin="$(command -v timeout)" || die "timeout is not on PATH"
 for tool in jq flock; do
   command -v "$tool" >/dev/null || die "$tool is not on PATH"
 done
-PATH="$user_path" command -v "${claude_cmd[0]}" >/dev/null || die "${claude_cmd[0]} is not on PATH"
-if [ "$sandbox_mode" = wrap ]; then
-  PATH="$user_path" command -v "${sandbox_cmd[0]}" >/dev/null ||
-    die "${sandbox_cmd[0]} is not on PATH; set sandbox.command, or pass --in-sandbox if this already runs inside a sandbox"
-  if sandboxed_now; then
-    say "warning: this already runs inside a sandbox, and iterations get a second one; --in-sandbox shares this one instead"
-  fi
-elif [ "$sandbox_mode" = none ]; then
-  say "warning: sandbox.mode is none, so iterations run with --dangerously-skip-permissions and no sandbox"
-fi
 [ -f "$prompt_file" ] || die "no prompt template at $prompt_file"
 
 checkout="$(target_checkout)"
@@ -1457,9 +1359,8 @@ run_id="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 run_dir="$runs/$run_id"
 mkdir -p "$run_dir/claimed" "$run_dir/outcomes" "$run_dir/reviewed" "$locks" "$worktree_dir"
 fingerprint >"$run_dir/fingerprint"
-build_sandbox_args
 
-say "run $run_id: target $target, sandbox $sandbox_mode, $jobs job(s), logs in $(rel "$state_dir")/tasks/<id>/"
+say "run $run_id: target $target, $jobs job(s), logs in $(rel "$state_dir")/tasks/<id>/"
 
 workers=()
 on_signal() {

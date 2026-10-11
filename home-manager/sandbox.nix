@@ -54,8 +54,12 @@ let
       # OpenAI Codex / generic
       "$HOME/.codex"
       "$HOME/.config/openai"
+      "$HOME/.local/share/opencode"
+      "$HOME/.local/state/opencode"
+      "$HOME/.cache/opencode"
     ];
     ro = [
+      "$HOME/.config/opencode"
       "$HOME/.config/git"
       "$HOME/.dotfiles"
     ];
