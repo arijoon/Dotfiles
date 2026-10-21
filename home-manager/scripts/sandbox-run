@@ -44,7 +44,8 @@ and forwards a standard set of env vars. Network is ON by default.
 landrun can't stop a process connecting to a unix socket it can see,
 so by default a bubblewrap layer runs under it: the command gets its
 own /tmp and process list, and /run/user/$UID (gpg-agent, D-Bus, ssh
-agents), the system D-Bus and the docker socket are hidden. The nix
+agents), the system D-Bus, the docker socket and herdr's config dir
+and sockets (its API can open unsandboxed panes) are hidden. The nix
 daemon stays reachable and ~/.cache/nix is granted, unless --no-nix.
 
 Usage:
@@ -208,13 +209,18 @@ for dir in "/run/user/$(id -u)" /run/dbus; do
   fi
 done
 hidden=()
-for sock in /run/docker.sock /var/run/docker.sock; do
-  [[ -S "$sock" ]] || continue
+for sock in /run/docker.sock /var/run/docker.sock "${HERDR_SOCKET_PATH:-}" "${HERDR_CLIENT_SOCKET_PATH:-}"; do
+  [[ -n "$sock" && -S "$sock" ]] || continue
   real="$(readlink -f "$sock")"
   [[ " ${hidden[*]} " == *" $real "* ]] && continue
   hidden+=("$real")
   bw+=(--ro-bind /dev/null "$real")
 done
+herdr_dir="${XDG_CONFIG_HOME:-$HOME/.config}/herdr"
+mkdir -p "$herdr_dir" 2>/dev/null || true
+if [[ -d "$herdr_dir" ]]; then
+  bw+=(--tmpfs "$herdr_dir")
+fi
 if [[ $nix -eq 0 && -d /nix/var/nix/daemon-socket ]]; then
   bw+=(--tmpfs /nix/var/nix/daemon-socket)
 fi
