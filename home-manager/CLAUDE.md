@@ -30,13 +30,15 @@ Per-user (`users/<name>.nix`):
 - Adds machine-specific packages.
 - `arman.nix`: `yq`, `mongosh`, `alacritty`.
 - `dsk.nix`: `keepassxc`, `lazydocker`, `vscode` (latest), `btop` (latest), `veracrypt`,
-  `magic-wormhole`, `rclone`, plus shell apps `towebm` / `towebmnoaudio`.
+  `magic-wormhole`, `rclone`, `zmx`, `herdr`, plus shell apps `towebm` / `towebmnoaudio`.
 
 ## Files & assets
 
 - `home-files/` — static config files referenced by `home.file` in `home.nix` /
   `kitty.nix` (alacritty, kitty, zellij). `home-files/mpv/` holds the mpv config
   (`mpv.conf`, `input.conf`, `script-opts/`, lua `scripts/`), symlinked by `mpv.nix`.
+  `home-files/herdr/config.toml` is herdr's config (prefix `ctrl+a`, keys mirroring
+  `kitty.conf`'s `kitty_mod` maps), out-of-store symlinked by `users/dsk.nix`.
 - `nvim-kickstart/` — Neovim config. Linked into `~/.config/nvim/` as an
   out-of-store symlink so edits don't require a rebuild.
 - `gemini/settings.json` — Gemini CLI config, also out-of-store symlinked.
@@ -56,6 +58,8 @@ Per-user (`users/<name>.nix`):
 - `nix-src` (FlakeHub Nix 2.34.7) — used for `arman`
 - `determinate-nix-src` (FlakeHub 3.12.0) — used for `dsk`
 - `nixgl`
+- `zmx`, `herdr` (pinned to a release tag; bump by editing the tag in the url) —
+  `dsk` only, passed to `users/dsk.nix` via its `extraSpecialArgs`
 
 `extraSpecialArgs` exposes `nixpkgs`, `nixpkgs-latest`, `pkgs-latest`, `nixgl`,
 and `nix` to all modules.

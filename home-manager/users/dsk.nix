@@ -4,6 +4,7 @@
   pkgs,
   pkgs-latest,
   zmx,
+  herdr,
   ...
 }:
 let
@@ -87,7 +88,13 @@ in
     ]
     ++ scriptswithDeps
     ++ latest
-    ++ [ zmx ];
+    ++ [
+      zmx
+      herdr
+    ];
+
+  home.file.".config/herdr/config.toml".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/home-manager/home-files/herdr/config.toml";
 
   programs.zsh.initContent = lib.mkOrder 1000 ''
     if command -v zmx &> /dev/null; then

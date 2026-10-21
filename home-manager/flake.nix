@@ -19,6 +19,9 @@
     zmx = {
       url = "github:neurosnap/zmx";
     };
+    herdr = {
+      url = "github:herdrdev/herdr/v0.9.5";
+    };
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -35,6 +38,7 @@
       home-manager,
       nixgl,
       zmx,
+      herdr,
       plasma-manager,
       ...
     }:
@@ -136,6 +140,7 @@
             ;
           nix = determinate-nix.default;
           zmx = zmx.packages."${system}".default;
+          herdr = herdr.packages."${system}".default;
         };
       };
 

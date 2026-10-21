@@ -1,0 +1,20 @@
+[keys]
+prefix = "ctrl+a"
+detach = "prefix+d"
+new_tab = ["prefix+t", "prefix+c"]
+close_tab = ["prefix+q", "prefix+shift+x"]
+rename_tab = ["prefix+comma", "prefix+shift+t"]
+rename_pane = ["prefix+period", "prefix+shift+p"]
+split_vertical = ["prefix+backslash", "prefix+enter", "prefix+v"]
+split_horizontal = "prefix+minus"
+swap_pane_left = ["prefix+left", "prefix+shift+h"]
+swap_pane_down = ["prefix+down", "prefix+shift+j"]
+swap_pane_up = ["prefix+up", "prefix+shift+k"]
+swap_pane_right = ["prefix+right", "prefix+shift+l"]
+edit_scrollback = ["prefix+u", "prefix+e"]
+
+[theme]
+name = "terminal"
+
+[theme.custom]
+accent = "#81a2be"
