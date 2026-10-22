@@ -17,6 +17,7 @@ in
   armanConfig.mpv.enable = true;
   armanConfig.hostNvidia.enable = true;
   armanConfig.ai.ralph.enable = true;
+  armanConfig.rootNix.flavour = "determinate";
 
   services.flameshot = {
     enable = true;

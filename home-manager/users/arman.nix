@@ -10,6 +10,7 @@
   home.homeDirectory = "/home/arman";
 
   armanConfig.ai.opencode.enable = true;
+  armanConfig.rootNix.flavour = "upstream";
 
   # start-ticket: create a Jira ticket -> wt worktree -> kitty tab title.
   # Sourced as a zsh function (after worktrunk's `wt` init in home.nix) so that

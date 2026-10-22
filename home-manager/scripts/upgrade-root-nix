@@ -1,27 +1,71 @@
-#!/usr/bin/env bash
 # Upgrade the multi-user nix-daemon (root's default profile) to the
-# flake-pinned upstream-nix. Run as your normal user — it sudoes the
-# privileged steps itself.
-set -euo pipefail
+# flake-pinned root-nix-$ROOT_NIX_FLAVOUR. Run as your normal user — it sudoes
+# the privileged steps itself.
 
 if [[ $EUID -eq 0 ]]; then
   echo "Run as your normal user, not root/sudo." >&2
   exit 1
 fi
 
-profile="/nix/var/nix/profiles/default"
-nix="$profile/bin/nix"
-dotfiles="$HOME/.dotfiles/home-manager"
-flake="$dotfiles#upstream-nix"
+relink() {
+  sudo ln -sfn "$1" "$2.upgrade-root-nix"
+  sudo mv -Tf "$2.upgrade-root-nix" "$2"
+}
 
-if sudo "$nix" profile list --profile "$profile" | grep -qi upstream-nix; then
-  sudo "$nix" profile upgrade --profile "$profile" upstream-nix
+default="/nix/var/nix/profiles/default"
+if [[ $ROOT_NIX_FLAVOUR == determinate ]]; then
+  profile="/nix/var/nix/profiles/per-user/root/profile"
 else
-  sudo "$nix" profile remove --profile "$profile" nix 2>/dev/null || true
-  sudo "$nix" profile install --profile "$profile" "$flake"
+  profile="$default"
+fi
+attr="root-nix-$ROOT_NIX_FLAVOUR"
+flake="$HOME/.dotfiles/home-manager#$attr"
+
+if [[ $ROOT_NIX_FLAVOUR == determinate ]]; then
+  out="$("$NIX_BIN" build --no-link --print-out-paths --no-update-lock-file "$flake")"
+  nixd_version="$("$out/bin/determinate-nixd" version 2>/dev/null | sed -n 's/^Determinate Nixd client version: //p' || true)"
+  nix_version="$("$out/bin/nix" --version | sed -n 's/^nix (Determinate Nix \([^)]*\)).*/\1/p')"
+  if [[ -z $nixd_version ]]; then
+    echo "warning: could not read the determinate-nixd version in $out, skipping the version check" >&2
+  elif [[ $nixd_version != "$nix_version" ]]; then
+    echo "determinate-nixd is $nixd_version but nix is $nix_version: bump the determinate input, not determinate/nix on its own" >&2
+    exit 1
+  fi
+fi
+
+list="$(sudo "$NIX_BIN" profile list --profile "$profile" --json)"
+current="$(jq -r --arg a "$attr" \
+  '.elements | to_entries[] | select((.value.attrPath // "") | endswith("." + $a)) | .key' <<<"$list")"
+
+if [[ -n $current ]]; then
+  sudo "$NIX_BIN" profile upgrade --profile "$profile" --no-update-lock-file "$current"
+else
+  old="$(jq -r '.elements | to_entries[]
+    | select(.key == "nix" or ((.value.attrPath // "") | test("\\.(upstream-nix|determinate-nix|root-nix-[a-z]+)$")))
+    | .key' <<<"$list")"
+  sudo "$NIX_BIN" profile add --profile "$profile" --priority 4 --no-update-lock-file "$flake"
+  while read -r name; do
+    [[ -n $name ]] && sudo "$NIX_BIN" profile remove --profile "$profile" "$name"
+  done <<<"$old"
+fi
+
+if [[ $ROOT_NIX_FLAVOUR == determinate ]]; then
+  relink "$profile" "$default"
+  if sudo test -L /root/.nix-profile || ! sudo test -e /root/.nix-profile; then
+    relink "$profile" /root/.nix-profile
+  else
+    echo "warning: /root/.nix-profile is not a symlink, leaving it alone; root shells will not use $profile" >&2
+  fi
+
+  bin="/usr/local/bin/determinate-nixd"
+  if [[ -f $bin && ! -L $bin ]]; then
+    version="$("$bin" version 2>/dev/null | sed -n 's/^Determinate Nixd client version: //p' || true)"
+    sudo mv "$bin" "$bin.installer-${version:-unknown}"
+  fi
+  relink "$default/bin/determinate-nixd" "$bin"
 fi
 
 sudo systemctl daemon-reload
 sudo systemctl restart nix-daemon
 
-"$nix" store info --json | jq -r '"daemon now: " + .version'
+"$NIX_BIN" store info --json | jq -r '"daemon now: " + .version'

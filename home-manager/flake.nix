@@ -3,10 +3,14 @@
 
   inputs = {
     # Specify the source of Home Manager and Nixpkgs.
-    nixpkgs.url = "github:nixos/nixpkgs/26.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     # Use this for users without determinate nix
-    nix-src.url = "https://flakehub.com/f/NixOS/nix/=2.34.7";
-    determinate-nix-src.url = "https://flakehub.com/f/DeterminateSystems/nix-src/=3.12.0";
+    nix-src.url = "github:NixOS/nix/2.34.9";
+    determinate = {
+      url = "https://flakehub.com/f/DeterminateSystems/determinate/=3.24.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    determinate-nix-src.follows = "determinate/nix";
     nixpkgs-latest.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
@@ -33,6 +37,7 @@
     {
       nixpkgs,
       nixpkgs-latest,
+      determinate,
       determinate-nix-src,
       nix-src,
       home-manager,
@@ -148,6 +153,14 @@
         home-manager = home-manager.packages."${system}".default;
         determinate-nix = determinate-nix.default;
         upstream-nix = nix.default;
+        root-nix-determinate = pkgs.buildEnv {
+          name = "root-nix-determinate";
+          paths = [
+            determinate-nix.default
+            determinate.packages."${system}".default
+          ];
+        };
+        root-nix-upstream = nix.default;
       };
     };
 }

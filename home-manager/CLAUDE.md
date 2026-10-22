@@ -13,7 +13,7 @@ Shared by both profiles (`commonMods` in `flake.nix`):
 | `shell.nix`           | Nushell + Starship (vi mode, custom prompt format)                        |
 | `kitty.nix`           | Kitty terminal (option `armanConfig.kitty.enable`, default `true`)        |
 | `sandbox.nix`         | `sandbox-run` (landrun wrapper) and `sandbox-ai` preset for AI CLIs       |
-| `common-scripts.nix`  | `update-ai` — reinstalls a CLI from `numtide/llm-agents.nix`              |
+| `common-scripts.nix`  | `update-ai` — reinstalls a CLI from `numtide/llm-agents.nix`. `upgrade-root-nix` (option `armanConfig.rootNix.flavour`: `determinate` on `dsk`, `upstream` on `arman`) — moves root's profile, i.e. the nix-daemon, onto the flake's `root-nix-<flavour>`. For Determinate that is `per-user/root/profile`, with `/nix/var/nix/profiles/default`, `/root/.nix-profile` and `/usr/local/bin/determinate-nixd` symlinked into it; for upstream it is `/nix/var/nix/profiles/default`. See `UPGRADING-NIX.md` |
 | `nixgl.nix`           | nixGL wrappers for non-NixOS GL (mesa default, nvidiaPrime offload)       |
 | `mpv.nix`             | mpv player (option `armanConfig.mpv.enable`, default `false`; on for `dsk`). Latest mpv + nixGL, re-wrapped so ffmpeg + subliminal are on mpv's PATH only (not the profile) and `~/.config/mpv/secrets.env` is sourced for script creds. Config from `home-files/mpv/` |
 | `ai/`                  | AI tooling. Claude itself stays a `nix profile` install (`update-ai`); HM never manages its binary, settings or `~/.claude` dirs, it only links skills: each is an out-of-store symlink `~/.claude/skills/<name>` → this repo, so edits land here. `ai/ralph/` (option `armanConfig.ai.ralph.enable`; on for `dsk`): the `ralph` loop command (`ralph.sh`, default prompts in `templates/`; it runs whatever agent command it is given and sandboxes nothing) and its skill (`skill/`, with per-agent notes in `skill/references/`). `test.sh` is the stubbed scenario suite, run against the installed `ralph`: `bash ai/ralph/test.sh`. `ai/opencode/` (option `armanConfig.ai.opencode.enable`; on for `arman`): the regular `opencode`, wrapped and configured for a llama.cpp llama-server at `$LLAMA_SERVER` (default `vopono.host:5001` inside `with-vpn -H`, else `127.0.0.1:5001`), with a small never-refusing prompt (`prompt.md`) and a SearXNG search tool at `$SEARXNG_URL`; testing it: the `opencode` skill |
@@ -50,13 +50,13 @@ Per-user (`users/<name>.nix`):
 
 ## Inputs (flake)
 
-- `nixpkgs` → release 26.05
+- `nixpkgs` → `nixos-26.05` channel branch (not the frozen `26.05` tag)
 - `nixpkgs-latest` → nixpkgs-unstable (exposed as `pkgs-latest`). The url tracks
   the branch but the lock is held at a hand-vetted channel release — bump it via
   the `nixpkgs-latest-bump` skill, not `nix flake update`.
 - `home-manager` → release 26.05
-- `nix-src` (FlakeHub Nix 2.34.7) — used for `arman`
-- `determinate-nix-src` (FlakeHub 3.12.0) — used for `dsk`
+- `nix-src` (`github:NixOS/nix/2.34.9`) — used for `arman`
+- `determinate` (FlakeHub `=3.24.0`) — `determinate-nixd` for `dsk`'s daemon; `determinate-nix-src` follows its `nix`, so this one pin sets dsk's CLI and daemon
 - `nixgl`
 - `zmx`, `herdr` (pinned to a release tag; bump by editing the tag in the url) —
   `dsk` only, passed to `users/dsk.nix` via its `extraSpecialArgs`
