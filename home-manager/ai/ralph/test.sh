@@ -285,6 +285,19 @@ done
 has "$(cat "$tmp/blocked.log/001.prompt")" "being resumed" "the resumed prompt"
 ok "a blocked task stops the loop with its questions, and --resume finishes it and carries on"
 
+repo resonce "001-ask|depends: -\nact: block" "002-free|depends: -\ntouch: b.txt"
+status=0
+ralph_in resonce >/dev/null || status=$?
+[ "$status" -eq 3 ] || fail "the blocked task made the loop exit $status, not 3"
+wt="$tmp/resonce/.tmp/worktrees/ralph-001-ask"
+printf '\n## Answers\n\n1. Blue.\n' >>"$wt/docs/tasks/001-ask.md"
+git -C "$wt" commit --quiet -am "Answer"
+out="$(ralph_in resonce --resume 001 --once)" || fail "resuming with --once: $out"
+has "$(subjects resonce)" "Do 001" "master after --resume 001 --once"
+lacks "$(subjects resonce)" "Do 002" "master after --resume 001 --once"
+has "$out" "merged 001" "the summary of --resume 001 --once"
+ok "--resume with --once finishes that task and starts no other"
+
 repo keep "001-ask|depends: -\nact: block" "002-free|depends: -\ntouch: b.txt" "003-crash|depends: -\nact: crash" "004-after|depends: 001\ntouch: c.txt"
 status=0
 out="$(ralph_in keep --keep-going)" || status=$?

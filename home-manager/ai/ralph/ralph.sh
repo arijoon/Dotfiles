@@ -19,6 +19,7 @@ nothing: run it, or the agent command, inside a sandbox yourself.
   --once           start at most one task
   --task ID        run this ready task, then stop
   --resume ID      continue a failed or blocked task in its kept worktree, then go on
+                   (with --once, stop after it)
   --discard ID     delete a task's kept worktree, branch and state
   --status         list every task with its status and any kept state
   --dry-run        show the next ready task, how it would run, and its prompt
@@ -54,6 +55,7 @@ export GIT_PAGER=cat GIT_TERMINAL_PROMPT=0
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_EXTERNAL_DIFF
 
 mode=loop
+once=false
 chosen=""
 jobs_flag=""
 agent_flag=""
@@ -61,7 +63,7 @@ review_agent_flag=""
 keep_going_flag=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --once) mode=once ;;
+    --once) once=true ;;
     --task | --resume | --discard)
       mode="${1#--}"
       chosen="${2:-}"
@@ -1347,13 +1349,11 @@ for dir in "$worktree_dir" "$state_dir"; do
   esac
 done
 
-case "$mode" in
-  once)
-    jobs=1
-    max_tasks=1
-    ;;
-  task) jobs=1 ;;
-esac
+if [ "$once" = true ]; then
+  jobs=1
+  max_tasks=1
+fi
+[ "$mode" != task ] || jobs=1
 
 run_id="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 run_dir="$runs/$run_id"
