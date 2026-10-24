@@ -5,7 +5,7 @@ let
   sandbox-run = pkgs.writeShellApplication {
     name = "sandbox-run";
     runtimeInputs = [
-      pkgs-latest.landrun
+      pkgs.landrun
       pkgs.bubblewrap
       pkgs.coreutils
     ];
