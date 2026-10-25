@@ -1,6 +1,6 @@
-{ pkgs, pkgs-latest, ... }:
+{ pkgs, pkgs-vopono, ... }:
 let
-  vopono = "${pkgs-latest.vopono}/bin/vopono";
+  vopono = "${pkgs-vopono.vopono}/bin/vopono";
   ip = "${pkgs.iproute2}/bin/ip";
   awk = "${pkgs.gawk}/bin/awk";
   cat = "${pkgs.coreutils}/bin/cat";
@@ -253,7 +253,7 @@ let
 in
 {
   home.packages = [
-    pkgs-latest.vopono
+    pkgs-vopono.vopono
     pkgs.wireguard-tools
     with-vpn
   ];

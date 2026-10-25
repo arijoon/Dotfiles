@@ -54,6 +54,10 @@ Per-user (`users/<name>.nix`):
 - `nixpkgs-latest` → nixpkgs-unstable (exposed as `pkgs-latest`). The url tracks
   the branch but the lock is held at a hand-vetted channel release — bump it via
   the `nixpkgs-latest-bump` skill, not `nix flake update`.
+- `nixpkgs-vopono` → nixpkgs pinned by rev in the url (`391b592e…`, vopono 0.10.19),
+  exposed as `pkgs-vopono` and used only by `network.nix`. vopono 1.0.x leaks the
+  namespace + openvpn on exit (drops its lockfile but skips teardown), so the next
+  `with-vpn` on the same server fails until openvpn is killed
 - `home-manager` → release 26.05
 - `nix-src` (`github:NixOS/nix/2.34.9`) — used for `arman`
 - `determinate` (FlakeHub `=3.24.0`) — `determinate-nixd` for `dsk`'s daemon; `determinate-nix-src` follows its `nix`, so this one pin sets dsk's CLI and daemon
@@ -61,7 +65,7 @@ Per-user (`users/<name>.nix`):
 - `zmx`, `herdr` (pinned to a release tag; bump by editing the tag in the url) —
   `dsk` only, passed to `users/dsk.nix` via its `extraSpecialArgs`
 
-`extraSpecialArgs` exposes `nixpkgs`, `nixpkgs-latest`, `pkgs-latest`, `nixgl`,
+`extraSpecialArgs` exposes `nixpkgs`, `nixpkgs-latest`, `pkgs-latest`, `pkgs-vopono`, `nixgl`,
 and `nix` to all modules.
 
 ## Notes

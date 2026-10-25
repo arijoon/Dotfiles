@@ -12,6 +12,7 @@
     };
     determinate-nix-src.follows = "determinate/nix";
     nixpkgs-latest.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs-vopono.url = "github:nixos/nixpkgs/391b592eb44808b3bd0cb80bb71b63a5a118b8bb";
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -37,6 +38,7 @@
     {
       nixpkgs,
       nixpkgs-latest,
+      nixpkgs-vopono,
       determinate,
       determinate-nix-src,
       nix-src,
@@ -57,6 +59,7 @@
         inherit system;
         config.allowUnfree = true;
       };
+      pkgs-vopono = nixpkgs-vopono.legacyPackages."${system}";
       determinate-nix = determinate-nix-src.packages."${system}";
       nix = nix-src.packages."${system}";
 
@@ -96,6 +99,7 @@
             nixpkgs
             nixpkgs-latest
             pkgs-latest
+            pkgs-vopono
             nixgl
             ;
           nix = nix.default;
@@ -117,6 +121,7 @@
             nixpkgs
             nixpkgs-latest
             pkgs-latest
+            pkgs-vopono
             nixgl
             ;
           nix = nix.default;
@@ -141,6 +146,7 @@
             nixpkgs
             nixpkgs-latest
             pkgs-latest
+            pkgs-vopono
             nixgl
             ;
           nix = determinate-nix.default;
