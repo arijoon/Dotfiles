@@ -72,6 +72,7 @@
         ./sandbox.nix
         ./network.nix
         ./mpv.nix
+        ./opentrack.nix
         ./ai
       ];
 

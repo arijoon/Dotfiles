@@ -15,6 +15,7 @@ in
   home.homeDirectory = "/home/dsk";
 
   armanConfig.mpv.enable = true;
+  armanConfig.opentrack.enable = true;
   armanConfig.hostNvidia.enable = true;
   armanConfig.ai.ralph.enable = true;
   armanConfig.rootNix.flavour = "determinate";
