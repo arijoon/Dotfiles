@@ -1,0 +1,14 @@
+.direnv/
+.envrc.local
+.secrets/
+.tmp/
+.treefmt-cache/
+result
+result-*
+*.log
+
+.env
+.env.*
+!.env.example
+*.pem
+*.key

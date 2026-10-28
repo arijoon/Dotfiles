@@ -18,6 +18,7 @@ in
   armanConfig.opentrack.enable = true;
   armanConfig.hostNvidia.enable = true;
   armanConfig.ai.ralph.enable = true;
+  armanConfig.ai.nixProject.enable = true;
   armanConfig.rootNix.flavour = "determinate";
 
   services.flameshot = {
