@@ -1,0 +1,15 @@
+# Re-sync a SPICE VM display after a resize. Run by hand.
+#   - switch the output to its preferred mode (what the SPICE viewer asked for)
+#   - restart spice-vdagent, which keeps the screen size it saw at startup and
+#     otherwise maps clicks off from the drawn cursor
+#   - redraw the wallpaper, which nitrogen rendered for the old size
+
+output=$(xrandr | awk '/ connected/ { print $1; exit }')
+xrandr --output "$output" --auto
+
+if command -v spice-vdagent >/dev/null; then
+  pkill -x -u "$USER" spice-vdagent || true
+  setsid -f spice-vdagent >/dev/null 2>&1
+fi
+
+nitrogen --restore

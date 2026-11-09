@@ -48,6 +48,25 @@
       yq
       mongosh
       alacritty
+      # dwm-start runs `nitrogen --restore`; nitrogen left the Ubuntu archive in 26.04
+      nitrogen
+      # spice-vdagent itself stays the system one, matching the system spice-vdagentd
+      (writeShellApplication {
+        name = "vm-display-fix";
+        runtimeInputs = [
+          xrandr
+          gawk
+          procps
+          util-linux
+          nitrogen
+        ];
+        text = builtins.readFile ../scripts/vm-display-fix;
+      })
     ]
     ++ latest;
+
+  # picom 12 (Ubuntu 26.04) refuses to start without a backend; xrender was the old default
+  home.file.".config/picom/picom.conf".text = ''
+    backend = "xrender";
+  '';
 }

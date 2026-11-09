@@ -29,7 +29,7 @@ Per-user (`users/<name>.nix`):
 
 - Sets `home.username`, `home.homeDirectory`, git signing key + email.
 - Adds machine-specific packages.
-- `arman.nix`: `yq`, `mongosh`, `alacritty`.
+- `arman.nix`: `yq`, `mongosh`, `alacritty`, `nitrogen`, `vm-display-fix` (after a SPICE resize: `xrandr --auto`, restart spice-vdagent, `nitrogen --restore`); `~/.config/picom/picom.conf` (backend for the system picom).
 - `dsk.nix`: `keepassxc`, `lazydocker`, `vscode` (latest), `btop` (latest), `veracrypt`,
   `magic-wormhole`, `rclone`, `zmx`, `herdr`, plus shell apps `towebm` / `towebmnoaudio`.
 
