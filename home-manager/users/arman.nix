@@ -10,7 +10,6 @@
   home.homeDirectory = "/home/arman";
 
   armanConfig.ai.opencode.enable = true;
-  armanConfig.rootNix.flavour = "upstream";
 
   # start-ticket: create a Jira ticket -> wt worktree -> kitty tab title.
   # Sourced as a zsh function (after worktrunk's `wt` init in home.nix) so that
@@ -24,8 +23,6 @@
       format = "openpgp";
       signByDefault = true;
       key = "10DD4601042012F6";
-      # Use system one
-      signer = "/usr/bin/gpg";
     };
 
     settings.user = {
@@ -41,15 +38,15 @@
         (librewolf.override {
           nativeMessagingHosts = [ keepassxc ];
         })
+        # fhs: extensions ship generic Linux binaries (rust-analyzer, C#, ...)
+        vscode.fhs
       ];
     in
     with pkgs;
     [
       yq
       mongosh
-      alacritty
-      # dwm-start runs `nitrogen --restore`; nitrogen left the Ubuntu archive in 26.04
-      nitrogen
+      rclone
       # spice-vdagent itself stays the system one, matching the system spice-vdagentd
       (writeShellApplication {
         name = "vm-display-fix";
@@ -65,8 +62,25 @@
     ]
     ++ latest;
 
-  # picom 12 (Ubuntu 26.04) refuses to start without a backend; xrender was the old default
-  home.file.".config/picom/picom.conf".text = ''
-    backend = "xrender";
-  '';
+  # Back up ~/drive (WorkDb.kdbx) to Google Drive every 5 minutes. Was a crontab
+  # line on the Ubuntu VM, which failed unnoticed for months once the token
+  # expired; here failures show in `systemctl --user --failed` and the journal
+  # (`journalctl --user -u rclone-drive-sync`). Token: `rclone config reconnect gdrive:`.
+  systemd.user.services.rclone-drive-sync = {
+    Unit.Description = "Sync ~/drive to gdrive:/xub_pc/drive";
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${lib.getExe pkgs.rclone} sync %h/drive gdrive:/xub_pc/drive -v";
+    };
+  };
+  systemd.user.timers.rclone-drive-sync = {
+    Unit.Description = "Sync ~/drive to Google Drive every 5 minutes";
+    Timer.OnCalendar = "*:0/5";
+    Install.WantedBy = [ "timers.target" ];
+  };
+
+  programs.git.maintenance = {
+    enable = true;
+    repositories = [ "/code/rhino-core" ];
+  };
 }

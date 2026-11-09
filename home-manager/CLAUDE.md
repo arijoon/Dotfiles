@@ -29,7 +29,7 @@ Per-user (`users/<name>.nix`):
 
 - Sets `home.username`, `home.homeDirectory`, git signing key + email.
 - Adds machine-specific packages.
-- `arman.nix`: `yq`, `mongosh`, `alacritty`, `nitrogen`, `vm-display-fix` (after a SPICE resize: `xrandr --auto`, restart spice-vdagent, `nitrogen --restore`); `~/.config/picom/picom.conf` (backend for the system picom).
+- `arman.nix` (NixOS work VM, system config in `~/rhino-nixos`; uses `commonModsNixOS`): `yq`, `mongosh`, `rclone`, `vscode.fhs` (latest; FHS so extensions' bundled binaries run), `vm-display-fix` (after a SPICE resize: `xrandr --auto`, restart spice-vdagent, `nitrogen --restore`); `rclone-drive-sync` user timer (`~/drive` → `gdrive:/xub_pc/drive` every 5 min); `programs.git.maintenance` for `/code/rhino-core`.
 - `dsk.nix`: `keepassxc`, `lazydocker`, `vscode` (latest), `btop` (latest), `veracrypt`,
   `magic-wormhole`, `rclone`, `zmx`, `herdr`, plus shell apps `towebm` / `towebmnoaudio`.
 

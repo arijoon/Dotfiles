@@ -81,10 +81,11 @@
       commonModsNixOS = builtins.filter (m: m != ./gpu.nix) commonMods;
     in
     {
+      # Work VM (NixOS, ~/rhino-nixos).
       homeConfigurations."arman" = home-manager.lib.homeManagerConfiguration {
         # Specify your home configuration modules here, for example,
         # the path to your home.nix.
-        modules = commonMods ++ [
+        modules = commonModsNixOS ++ [
           ./wsl.nix
           ./xmonad.nix
           ./emacs.nix
