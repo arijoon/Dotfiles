@@ -7,7 +7,7 @@
     # Use this for users without determinate nix
     nix-src.url = "github:NixOS/nix/2.34.9";
     determinate = {
-      url = "https://flakehub.com/f/DeterminateSystems/determinate/=3.24.0";
+      url = "https://flakehub.com/f/DeterminateSystems/determinate/=3.24.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     determinate-nix-src.follows = "determinate/nix";

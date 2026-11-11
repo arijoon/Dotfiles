@@ -78,10 +78,10 @@ Edit the pinned version in [`flake.nix`](flake.nix):
 
 ```nix
 # dsk: one knob for the CLI, the daemon's nix and determinate-nixd
-determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/=3.24.0";
+determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/=<version>";
 
 # arman
-nix-src.url = "github:NixOS/nix/2.34.9";
+nix-src.url = "github:NixOS/nix/<tag>";
 ```
 
 Then refresh the lock, test-build the root env, and switch:

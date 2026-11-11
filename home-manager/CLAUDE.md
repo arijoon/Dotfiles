@@ -60,8 +60,8 @@ Per-user (`users/<name>.nix`):
   namespace + openvpn on exit (drops its lockfile but skips teardown), so the next
   `with-vpn` on the same server fails until openvpn is killed
 - `home-manager` → release 26.05
-- `nix-src` (`github:NixOS/nix/2.34.9`) — used for `arman`
-- `determinate` (FlakeHub `=3.24.0`) — `determinate-nixd` for `dsk`'s daemon; `determinate-nix-src` follows its `nix`, so this one pin sets dsk's CLI and daemon
+- `nix-src` (`github:NixOS/nix/<tag>`) — used for `arman`
+- `determinate` (FlakeHub `=<version>`) — `determinate-nixd` for `dsk`'s daemon; `determinate-nix-src` follows its `nix`, so this one pin sets dsk's CLI and daemon
 - `nixgl`
 - `zmx`, `herdr` (pinned to a release tag; bump by editing the tag in the url) —
   `dsk` only, passed to `users/dsk.nix` via its `extraSpecialArgs`
